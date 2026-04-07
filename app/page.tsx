@@ -1,65 +1,130 @@
-import Image from "next/image";
+'use client';
+
+import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import Navbar from '@/components/Navbar';
+import Sidebar, { type LayerKey, type LayerConfig } from '@/components/Sidebar';
+import DetailPanel from '@/components/DetailPanel';
+import StatsBar from '@/components/StatsBar';
+import ChatDrawer from '@/components/ChatDrawer';
+
+const PhillyMap = dynamic(() => import('@/components/PhillyMap'), { ssr: false });
+const LoadingScreen = dynamic(() => import('@/components/LoadingScreen'), { ssr: false });
+
+const INITIAL_LAYERS: LayerConfig[] = [
+  { key: 'heatmap', label: 'Vacancy Heatmap', icon: '🔥', color: '#B13BFF', enabled: true, opacity: 0.8 },
+  { key: 'vacant_parcels', label: 'Vacant Parcels', icon: '🏚', color: '#B13BFF', enabled: false, opacity: 1 },
+  { key: 'blight_scores', label: 'Blight Risk Scores', icon: '⚠️', color: '#FF6B35', enabled: true, opacity: 0.9 },
+  { key: 'neighborhoods', label: 'Neighborhood Bounds', icon: '🗺', color: '#471396', enabled: true, opacity: 0.6 },
+  { key: 'evictions', label: 'Eviction Hotspots', icon: '📌', color: '#FFCC00', enabled: false, opacity: 1 },
+  { key: 'violations', label: 'Code Violations', icon: '🔴', color: '#FF2D55', enabled: false, opacity: 0.8 },
+];
+
+interface SelectedProperty {
+  id: number;
+  parcel_id: string;
+  address: string;
+  owner?: string;
+  lat: number;
+  lng: number;
+  market_value?: number;
+  total_area?: number;
+  zip_code?: string;
+  blight_score: number;
+  category?: string;
+  violations?: Array<{
+    violation_id: string;
+    violation_type: string;
+    violation_date?: string;
+    status?: string;
+    description?: string;
+  }>;
+}
 
 export default function Home() {
+  const [appReady, setAppReady] = useState(false);
+  const [layers, setLayers] = useState<LayerConfig[]>(INITIAL_LAYERS);
+  const [riskFilter, setRiskFilter] = useState('all');
+  const [selectedProperty, setSelectedProperty] = useState<SelectedProperty | null>(null);
+  const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
+  const [lastIngestion, setLastIngestion] = useState<string>('');
+
+  const handleLayerToggle = useCallback((key: LayerKey) => {
+    setLayers(prev => prev.map(l => l.key === key ? { ...l, enabled: !l.enabled } : l));
+  }, []);
+
+  const handleOpacityChange = useCallback((key: LayerKey, opacity: number) => {
+    setLayers(prev => prev.map(l => l.key === key ? { ...l, opacity } : l));
+  }, []);
+
+  const handlePropertySelect = useCallback((property: SelectedProperty) => {
+    setSelectedProperty(property);
+    setSelectedNeighborhood(null);
+  }, []);
+
+  const handleNeighborhoodSelect = useCallback((name: string) => {
+    setSelectedNeighborhood(name);
+    setSelectedProperty(null);
+  }, []);
+
+  const handlePanelClose = useCallback(() => {
+    setSelectedProperty(null);
+    setSelectedNeighborhood(null);
+  }, []);
+
+  const handleAddressSelect = useCallback((_address: string, lat: number, lng: number) => {
+    setFlyTo({ lat, lng });
+    setTimeout(() => setFlyTo(null), 1000);
+  }, []);
+
+  const handleLoadingComplete = useCallback(() => {
+    setAppReady(true);
+    fetch('/api/stats').then(r => r.json()).then(data => {
+      if (data.last_ingestion) setLastIngestion(data.last_ingestion);
+    }).catch(() => {});
+  }, []);
+
+  const mapContext = `Active layers: ${layers.filter(l => l.enabled).map(l => l.label).join(', ')}. Risk filter: ${riskFilter}.`;
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="map-viewport w-full">
+      {!appReady && <LoadingScreen onComplete={handleLoadingComplete} />}
+
+      {appReady && (
+        <PhillyMap
+          layers={layers}
+          riskFilter={riskFilter}
+          onPropertySelect={handlePropertySelect}
+          onNeighborhoodSelect={handleNeighborhoodSelect}
+          flyTo={flyTo}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      )}
+
+      {appReady && (
+        <>
+          <Navbar onAddressSelect={handleAddressSelect} lastIngestion={lastIngestion} />
+          <Sidebar
+            layers={layers}
+            onLayerToggle={handleLayerToggle}
+            onOpacityChange={handleOpacityChange}
+            riskFilter={riskFilter}
+            onRiskFilterChange={setRiskFilter}
+          />
+          <DetailPanel
+            property={selectedProperty}
+            neighborhood={selectedNeighborhood}
+            onClose={handlePanelClose}
+          />
+          <StatsBar onOpenChat={() => setChatOpen(true)} />
+          <ChatDrawer
+            isOpen={chatOpen}
+            onClose={() => setChatOpen(false)}
+            mapContext={mapContext}
+          />
+        </>
+      )}
+    </main>
   );
 }
