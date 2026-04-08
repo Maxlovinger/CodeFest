@@ -1,13 +1,10 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Layers, SlidersHorizontal, ChevronDown, ChevronUp,
-  Flame, MapPin, AlertTriangle, Map, Home, ShieldAlert
-} from 'lucide-react';
+import { Layers, SlidersHorizontal, ChevronDown, ChevronUp, AlertTriangle, Map, Home, ShieldAlert } from 'lucide-react';
 import { useState } from 'react';
 
-export type LayerKey = 'heatmap' | 'vacant_parcels' | 'blight_scores' | 'neighborhoods' | 'evictions' | 'violations';
+export type LayerKey = 'vacant_parcels' | 'blight_scores' | 'neighborhoods' | 'violations';
 
 export interface LayerConfig {
   key: LayerKey;
@@ -28,11 +25,9 @@ interface SidebarProps {
 }
 
 const LAYER_ICONS: Record<LayerKey, React.ReactNode> = {
-  heatmap: <Flame size={14} />,
   vacant_parcels: <Home size={14} />,
   blight_scores: <ShieldAlert size={14} />,
   neighborhoods: <Map size={14} />,
-  evictions: <MapPin size={14} />,
   violations: <AlertTriangle size={14} />,
 };
 
@@ -68,38 +63,26 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
   );
 }
 
-function LayerRow({ layer, onToggle, onOpacityChange }: {
+function LayerRow({ layer, onToggle }: {
   layer: LayerConfig;
   onToggle: () => void;
-  onOpacityChange: (v: number) => void;
 }) {
-  const [showOpacity, setShowOpacity] = useState(false);
-
   return (
     <div
-      className="rounded-lg overflow-hidden transition-all duration-200"
+      className="rounded-lg transition-all duration-200"
       style={{
         background: layer.enabled ? 'rgba(177,59,255,0.1)' : 'rgba(255,255,255,0.03)',
         border: `1px solid ${layer.enabled ? 'rgba(177,59,255,0.28)' : 'rgba(255,255,255,0.06)'}`,
       }}
     >
       <div className="flex items-center gap-2.5 px-3 py-2.5">
-        {/* Icon */}
-        <span
-          className="flex-shrink-0"
-          style={{ color: layer.enabled ? layer.color : 'var(--text-muted)' }}
-        >
+        <span className="flex-shrink-0" style={{ color: layer.enabled ? layer.color : 'var(--text-muted)' }}>
           {LAYER_ICONS[layer.key]}
         </span>
-
-        {/* Label */}
         <div className="flex-1 min-w-0">
           <p
             className="text-xs font-semibold leading-none truncate"
-            style={{
-              fontFamily: 'Syne, sans-serif',
-              color: layer.enabled ? 'var(--text-primary)' : 'var(--text-muted)',
-            }}
+            style={{ fontFamily: 'Syne, sans-serif', color: layer.enabled ? 'var(--text-primary)' : 'var(--text-muted)' }}
           >
             {layer.label}
           </p>
@@ -109,45 +92,8 @@ function LayerRow({ layer, onToggle, onOpacityChange }: {
             </p>
           )}
         </div>
-
-        {/* Opacity button */}
-        <button
-          onClick={() => setShowOpacity(v => !v)}
-          className="p-1 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-150 hover:bg-white/5"
-          style={{ color: 'var(--text-muted)' }}
-          aria-label="Adjust opacity"
-        >
-          <SlidersHorizontal size={11} />
-        </button>
-
         <Toggle enabled={layer.enabled} onToggle={onToggle} />
       </div>
-
-      <AnimatePresence>
-        {showOpacity && (
-          <motion.div
-            className="px-3 pb-2.5"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.15 }}
-          >
-            <div className="flex items-center gap-2 pt-1" style={{ borderTop: '1px solid rgba(177,59,255,0.1)' }}>
-              <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'DM Sans' }}>Opacity</span>
-              <input
-                type="range" min="0" max="100"
-                value={Math.round(layer.opacity * 100)}
-                onChange={e => onOpacityChange(parseInt(e.target.value) / 100)}
-                className="flex-1 h-px cursor-pointer"
-                style={{ accentColor: 'var(--electric)' }}
-              />
-              <span className="text-[10px] w-7 text-right flex-shrink-0" style={{ color: 'var(--electric)', fontFamily: 'JetBrains Mono' }}>
-                {Math.round(layer.opacity * 100)}%
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
@@ -163,7 +109,7 @@ export default function Sidebar({
 
   return (
     <motion.aside
-      className="fixed left-0 top-14 bottom-12 w-60 z-20 flex flex-col overflow-hidden"
+      className="fixed left-0 top-20 bottom-12 w-60 z-20 flex flex-col overflow-hidden"
       style={{
         background: 'rgba(9,0,48,0.88)',
         backdropFilter: 'blur(20px)',
@@ -189,13 +135,12 @@ export default function Sidebar({
             </span>
           </div>
 
-          <div className="flex flex-col gap-1.5 group">
+          <div className="flex flex-col gap-1.5">
             {layers.map(layer => (
               <LayerRow
                 key={layer.key}
                 layer={layer}
                 onToggle={() => onLayerToggle(layer.key)}
-                onOpacityChange={(v) => onOpacityChange(layer.key, v)}
               />
             ))}
           </div>

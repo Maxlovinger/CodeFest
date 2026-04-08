@@ -1,28 +1,42 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/db';
-import { migrate } from '@/lib/db/migrate';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const layer = searchParams.get('layer') || 'vacant_buildings';
   const limit = Math.min(parseInt(searchParams.get('limit') || '2000'), 5000);
+  const riskTier = searchParams.get('risk_tier') || '';
+
+  const TIER_RANGES: Record<string, [number, number]> = {
+    critical: [80, 100],
+    high: [60, 79],
+    medium: [40, 59],
+    low: [0, 39],
+  };
 
   try {
-    await migrate();
 
     let rows: Record<string, unknown>[] = [];
 
     switch (layer) {
-      case 'vacant_buildings':
+      case 'vacant_buildings': {
+        const range = TIER_RANGES[riskTier];
+        const params: unknown[] = [limit];
+        let whereExtra = '';
+        if (range) {
+          params.push(range[0], range[1]);
+          whereExtra = ` AND blight_score BETWEEN $2 AND $3`;
+        }
         rows = await query(
           `SELECT id, parcel_id, address, owner, lat, lng, market_value, total_area, zip_code, blight_score, category
            FROM vacant_buildings
-           WHERE lat IS NOT NULL AND lng IS NOT NULL
+           WHERE lat IS NOT NULL AND lng IS NOT NULL${whereExtra}
            ORDER BY blight_score DESC
            LIMIT $1`,
-          [limit]
+          params
         );
         break;
+      }
 
       case 'vacant_land':
         rows = await query(

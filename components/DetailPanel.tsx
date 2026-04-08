@@ -203,7 +203,12 @@ function AIAnalysis({ property }: { property: Property }) {
 }
 
 // Neighborhood view
+function formatNeighborhoodName(name: string) {
+  return name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
 function NeighborhoodView({ name, onClose }: { name: string; onClose: () => void }) {
+  const displayName = formatNeighborhoodName(name);
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -242,7 +247,7 @@ function NeighborhoodView({ name, onClose }: { name: string; onClose: () => void
             Neighborhood
           </p>
           <h2 className="text-xl font-bold" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-primary)' }}>
-            {name}
+            {displayName}
           </h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--electric)', fontFamily: 'DM Sans' }}>
             Philadelphia, PA
@@ -316,7 +321,7 @@ export default function DetailPanel({ property, neighborhood, onClose }: DetailP
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed right-0 top-14 bottom-12 w-80 z-20 flex flex-col overflow-hidden"
+          className="fixed right-0 top-20 bottom-12 w-80 z-20 flex flex-col overflow-hidden"
           style={{
             background: 'rgba(13,0,60,0.92)',
             backdropFilter: 'blur(20px)',

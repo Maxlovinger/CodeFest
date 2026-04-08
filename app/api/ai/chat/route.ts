@@ -1,23 +1,21 @@
 import { NextRequest } from 'next/server';
 import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
-import { query } from '@/lib/db';
+import { retrieveContext, formatRagContext } from '@/lib/rag';
 
 export async function POST(req: NextRequest) {
   const { messages, context } = await req.json();
 
-  // Get current stats for context
-  let statsContext = '';
-  try {
-    const stats = await query<{ vacant_buildings: string; violations: string; evictions: string }>(
-      `SELECT (SELECT COUNT(*) FROM vacant_buildings) as vacant_buildings,
-              (SELECT COUNT(*) FROM violations) as violations,
-              (SELECT COUNT(*) FROM evictions) as evictions`
-    );
-    const s = stats[0];
-    statsContext = `\n\nCurrent database stats: ${s.vacant_buildings} vacant properties, ${s.violations} code violations, ${s.evictions} eviction filings tracked.`;
-  } catch { /* ignore */ }
+  // Last user message is the query we use for RAG retrieval
+  const lastUserMsg: string = messages.findLast((m: { role: string; content: string }) => m.role === 'user')?.content ?? '';
 
-  const systemPrompt = HOLMES_SYSTEM_PROMPT + statsContext + (context ? `\n\nMap context: ${context}` : '');
+  // Retrieve relevant context from Pinecone in parallel with building the prompt
+  const ragChunks = await retrieveContext(lastUserMsg, 6);
+  const ragContext = formatRagContext(ragChunks);
+
+  const systemPrompt =
+    HOLMES_SYSTEM_PROMPT +
+    ragContext +
+    (context ? `\n\nMap state: ${context}` : '');
 
   const groq = getGroq();
   const stream = await groq.chat.completions.create({
@@ -27,7 +25,7 @@ export async function POST(req: NextRequest) {
       ...messages,
     ],
     stream: true,
-    max_tokens: 1024,
+    max_tokens: 600,
     temperature: 0.7,
   });
 

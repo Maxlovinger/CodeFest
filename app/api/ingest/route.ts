@@ -1,6 +1,5 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/db';
-import { migrate } from '@/lib/db/migrate';
 
 // Build Carto SQL URL - use JSON format for row-based queries, GeoJSON for geo sources
 function cartoJsonUrl(sql: string): string {
@@ -194,7 +193,6 @@ export async function GET(req: NextRequest) {
   const force = searchParams.get('force') === 'true';
 
   try {
-    await migrate();
   } catch (err) {
     return Response.json({ error: 'Migration failed', details: String(err) }, { status: 500 });
   }

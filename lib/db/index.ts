@@ -1,29 +1,13 @@
-import { Pool } from 'pg';
+import { neon } from '@neondatabase/serverless';
 
-let pool: Pool | null = null;
-
-export function getPool(): Pool {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 10,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 10000,
-    });
-  }
-  return pool;
-}
+// neon() is typed as a tagged template literal but also accepts (string, params[]) at runtime
+const sql = neon(process.env.DATABASE_URL!);
 
 export async function query<T = Record<string, unknown>>(
   text: string,
   params?: unknown[]
 ): Promise<T[]> {
-  const client = await getPool().connect();
-  try {
-    const result = await client.query(text, params);
-    return result.rows as T[];
-  } finally {
-    client.release();
-  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = await (sql as any)(text, params ?? []);
+  return result as T[];
 }

@@ -46,7 +46,7 @@ export default function AboutPage() {
     <>
       <PageNav />
 
-      <div className="min-h-screen pt-14" style={{ background: 'var(--void)' }}>
+      <div className="min-h-screen pt-20" style={{ background: 'var(--void)' }}>
         <div
           className="fixed inset-0 pointer-events-none z-0"
           style={{ background: 'radial-gradient(ellipse at 20% 50%, rgba(71,19,150,0.15) 0%, transparent 60%)' }}
@@ -186,7 +186,7 @@ export default function AboutPage() {
           </Section>
 
           {/* Codefest */}
-          <Section title="Philly Codefest 2025" delay={0.4}>
+          <Section title="Philly Codefest 2026" delay={0.4}>
             <div
               className="rounded-xl p-6 text-center"
               style={{
@@ -208,7 +208,7 @@ export default function AboutPage() {
                 style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
                 <span>Philadelphia, PA</span>
                 <span style={{ color: 'var(--electric)' }}>◈</span>
-                <span>April 2025</span>
+                <span>April 2026</span>
                 <span style={{ color: 'var(--electric)' }}>◈</span>
                 <span>Open Source</span>
               </div>
@@ -226,7 +226,7 @@ export default function AboutPage() {
               "He mapped our beginning. We map our present."
             </p>
             <p className="text-[10px] mt-2 tracking-widest uppercase" style={{ color: 'var(--text-muted)', fontFamily: 'DM Sans' }}>
-              The Holmes Project · 2025
+              The Holmes Project · 2026
             </p>
           </motion.div>
         </div>

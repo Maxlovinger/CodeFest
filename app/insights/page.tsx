@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -55,6 +55,8 @@ const TOOLTIP_STYLE = {
   color: 'white',
   boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
 };
+const TOOLTIP_LABEL_STYLE = { color: 'rgba(255,255,255,0.9)', fontFamily: 'Syne, sans-serif', fontWeight: 600 };
+const TOOLTIP_ITEM_STYLE = { color: 'rgba(255,255,255,0.85)', fontFamily: 'JetBrains Mono, monospace' };
 
 function ChartCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -84,8 +86,14 @@ export default function InsightsPage() {
   const [aiInsight, setAiInsight] = useState('');
   const [loadingInsight, setLoadingInsight] = useState(false);
   const [question, setQuestion] = useState('');
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchInsight = async (q?: string) => {
+    // Cancel any in-flight request
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoadingInsight(true);
     setAiInsight('');
     try {
@@ -93,6 +101,7 @@ export default function InsightsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: q || 'Analyze current trends in Philadelphia housing crisis data and provide 3 key insights with specific policy recommendations.' }),
+        signal: controller.signal,
       });
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
@@ -100,21 +109,27 @@ export default function InsightsPage() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        setAiInsight(prev => prev + decoder.decode(value));
+        setAiInsight(prev => prev + decoder.decode(value, { stream: true }));
       }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === 'AbortError') return;
     } finally {
-      setLoadingInsight(false);
+      if (abortRef.current === controller) setLoadingInsight(false);
     }
   };
 
-  useEffect(() => { fetchInsight(); }, []);
+  useEffect(() => {
+    fetchInsight();
+    return () => { abortRef.current?.abort(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
       <PageNav />
 
       {/* Scrollable content — pt-14 clears fixed nav */}
-      <div className="min-h-screen pt-14" style={{ background: 'var(--void)' }}>
+      <div className="min-h-screen pt-20" style={{ background: 'var(--void)' }}>
         {/* Ambient glow */}
         <div
           className="fixed inset-0 pointer-events-none z-0"
@@ -228,7 +243,7 @@ export default function InsightsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(177,59,255,0.07)" />
                   <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'DM Sans' }} />
                   <YAxis tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} />
                   <Area type="monotone" dataKey="vacant" stroke="#B13BFF" fill="url(#vacantGrad)" name="Vacant" strokeWidth={2} dot={false} />
                   <Area type="monotone" dataKey="violations" stroke="#FF6B35" fill="url(#violGrad)" name="Violations" strokeWidth={2} dot={false} />
                 </AreaChart>
@@ -241,7 +256,7 @@ export default function InsightsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(177,59,255,0.07)" horizontal={false} />
                   <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 9, fontFamily: 'JetBrains Mono' }} domain={[0, 100]} />
                   <YAxis dataKey="zip" type="category" tick={{ fill: 'rgba(255,255,255,0.45)', fontSize: 9, fontFamily: 'JetBrains Mono' }} width={44} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} />
                   <Bar dataKey="score" name="Blight Score" radius={[0, 3, 3, 0]}>
                     {BLIGHT_BY_ZIP.map(entry => (
                       <Cell key={entry.zip} fill={entry.score >= 80 ? '#FF2D55' : entry.score >= 60 ? '#FF6B35' : entry.score >= 40 ? '#FFCC00' : '#00E5A0'} />
@@ -260,7 +275,7 @@ export default function InsightsPage() {
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
             </ChartCard>
@@ -271,7 +286,7 @@ export default function InsightsPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(177,59,255,0.07)" />
                   <XAxis dataKey="tier" tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'DM Sans' }} />
                   <YAxis tick={{ fill: 'rgba(255,255,255,0.35)', fontSize: 10, fontFamily: 'JetBrains Mono' }} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} />
                   <Bar dataKey="count" name="Properties" radius={[4, 4, 0, 0]}>
                     {RISK_DISTRIBUTION.map(entry => (
                       <Cell key={entry.tier} fill={entry.color} />

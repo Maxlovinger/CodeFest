@@ -122,7 +122,7 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
 
           {/* Drawer */}
           <motion.div
-            className="fixed left-64 right-0 bottom-12 z-50 flex flex-col"
+            className="fixed left-60 right-0 bottom-12 z-50 flex flex-col"
             style={{
               height: '60vh',
               background: 'rgba(9,0,48,0.97)',

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Download, ChevronLeft, ChevronRight, Database } from 'lucide-react';
+import { Search, Download, ChevronLeft, ChevronRight, Database, ChevronUp, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import PageNav from '@/components/PageNav';
 
 interface Property {
@@ -21,6 +21,16 @@ interface Property {
 
 const RISK_TIERS = ['all', 'critical', 'high', 'medium', 'low'];
 const PAGE_SIZE = 50;
+
+type SortKey = 'blight_score' | 'market_value' | 'address' | 'zip_code' | 'total_area';
+const COLUMNS: { label: string; key: SortKey | null }[] = [
+  { label: 'Address',      key: 'address' },
+  { label: 'Owner',        key: null },
+  { label: 'ZIP',          key: 'zip_code' },
+  { label: 'Market Value', key: 'market_value' },
+  { label: 'Risk Score',   key: 'blight_score' },
+  { label: 'Category',     key: null },
+];
 
 function blightColor(score: number) {
   if (score >= 80) return '#FF2D55';
@@ -43,6 +53,19 @@ export default function DataPage() {
   const [search, setSearch] = useState('');
   const [riskTier, setRiskTier] = useState('all');
   const [page, setPage] = useState(0);
+  const [sortBy, setSortBy] = useState<SortKey>('blight_score');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (key: SortKey | null) => {
+    if (!key) return;
+    if (sortBy === key) {
+      setSortDir(d => d === 'desc' ? 'asc' : 'desc');
+    } else {
+      setSortBy(key);
+      setSortDir('desc');
+    }
+    setPage(0);
+  };
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -50,6 +73,8 @@ export default function DataPage() {
       const params = new URLSearchParams({
         limit: String(PAGE_SIZE),
         offset: String(page * PAGE_SIZE),
+        sort_by: sortBy,
+        sort_dir: sortDir,
         ...(search && { search }),
         ...(riskTier !== 'all' && { risk_tier: riskTier }),
       });
@@ -60,7 +85,7 @@ export default function DataPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, riskTier, page]);
+  }, [search, riskTier, page, sortBy, sortDir]);
 
   useEffect(() => { setPage(0); }, [search, riskTier]);
   useEffect(() => { fetchData(); }, [fetchData]);
@@ -84,7 +109,7 @@ export default function DataPage() {
     <>
       <PageNav />
 
-      <div className="min-h-screen pt-14" style={{ background: 'var(--void)' }}>
+      <div className="min-h-screen pt-20" style={{ background: 'var(--void)' }}>
         <div
           className="fixed inset-0 pointer-events-none z-0"
           style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(71,19,150,0.12) 0%, transparent 60%)' }}
@@ -187,16 +212,34 @@ export default function DataPage() {
               <table className="w-full min-w-[640px]" aria-label="Philadelphia vacant properties">
                 <thead>
                   <tr style={{ background: 'rgba(45,11,94,0.5)', borderBottom: '1px solid rgba(177,59,255,0.15)' }}>
-                    {['Address', 'Owner', 'ZIP', 'Market Value', 'Risk Score', 'Category'].map(h => (
-                      <th
-                        key={h}
-                        scope="col"
-                        className="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-semibold"
-                        style={{ fontFamily: 'Syne, sans-serif', color: 'var(--text-muted)' }}
-                      >
-                        {h}
-                      </th>
-                    ))}
+                    {COLUMNS.map(col => {
+                      const active = col.key && sortBy === col.key;
+                      return (
+                        <th
+                          key={col.label}
+                          scope="col"
+                          className="text-left px-4 py-3 text-[10px] uppercase tracking-widest font-semibold"
+                          style={{ fontFamily: 'Syne, sans-serif', color: active ? 'var(--electric)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}
+                        >
+                          {col.key ? (
+                            <button
+                              onClick={() => handleSort(col.key)}
+                              className="flex items-center gap-1 cursor-pointer hover:text-white transition-colors duration-100 group"
+                              style={{ color: 'inherit', fontFamily: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit', fontWeight: 'inherit', textTransform: 'inherit' }}
+                              aria-sort={active ? (sortDir === 'desc' ? 'descending' : 'ascending') : 'none'}
+                            >
+                              {col.label}
+                              <span className="flex flex-col opacity-60 group-hover:opacity-100" style={{ color: active ? 'var(--electric)' : 'var(--text-muted)' }}>
+                                {active && sortDir === 'asc'
+                                  ? <ChevronUp size={10} />
+                                  : <ChevronDownIcon size={10} style={{ opacity: active ? 1 : 0.4 }} />
+                                }
+                              </span>
+                            </button>
+                          ) : col.label}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>

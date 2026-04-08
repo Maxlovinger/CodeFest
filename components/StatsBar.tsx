@@ -105,7 +105,7 @@ export default function StatsBar({ onOpenChat }: StatsBarProps) {
       {/* Holmes AI Chat button */}
       <button
         onClick={onOpenChat}
-        className="flex-shrink-0 flex items-center gap-2 px-4 h-full border-l transition-all duration-200 group"
+        className="flex-shrink-0 flex items-center gap-2 px-4 h-full border-l transition-all duration-200 group cursor-pointer"
         style={{
           borderColor: 'rgba(177,59,255,0.2)',
           background: 'rgba(177,59,255,0.05)',

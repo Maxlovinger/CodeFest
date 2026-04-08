@@ -1,9 +1,7 @@
 import { query } from '@/lib/db';
-import { migrate } from '@/lib/db/migrate';
 
 export async function GET() {
   try {
-    await migrate();
     const stats = await query<{
       vacant_buildings: string;
       vacant_land: string;

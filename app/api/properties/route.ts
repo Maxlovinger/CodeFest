@@ -8,6 +8,11 @@ export async function GET(req: NextRequest) {
   const offset = parseInt(searchParams.get('offset') || '0');
   const search = searchParams.get('search') || '';
   const riskTier = searchParams.get('risk_tier') || '';
+  const sortBy = searchParams.get('sort_by') || 'blight_score';
+  const sortDir = searchParams.get('sort_dir') === 'asc' ? 'ASC' : 'DESC';
+
+  const SORTABLE = ['blight_score', 'market_value', 'address', 'zip_code', 'total_area'];
+  const safeSort = SORTABLE.includes(sortBy) ? sortBy : 'blight_score';
 
   try {
     if (parcelId) {
@@ -56,7 +61,7 @@ export async function GET(req: NextRequest) {
       `SELECT id, parcel_id, address, owner, lat, lng, market_value, total_area, zip_code, blight_score, category
        FROM vacant_buildings
        ${whereClause}
-       ORDER BY blight_score DESC
+       ORDER BY ${safeSort} ${sortDir} NULLS LAST
        LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );
