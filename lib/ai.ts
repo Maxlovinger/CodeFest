@@ -1,8 +1,8 @@
 import Groq from 'groq-sdk';
-import { getCfVar } from './cf-env';
+import { requireCfVar } from './cf-env';
 
 export async function getGroq(): Promise<Groq> {
-  const apiKey = await getCfVar('GROQ_API_KEY');
+  const apiKey = await requireCfVar('GROQ_API_KEY');
   return new Groq({ apiKey });
 }
  

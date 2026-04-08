@@ -103,6 +103,11 @@ export default function InsightsPage() {
         body: JSON.stringify({ question: q || 'Analyze current trends in Philadelphia housing crisis data and provide 3 key insights with specific policy recommendations.' }),
         signal: controller.signal,
       });
+      if (!res.ok) {
+        const errorText = (await res.text()) || 'Holmes AI is unavailable right now.';
+        setAiInsight(errorText);
+        return;
+      }
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) return;

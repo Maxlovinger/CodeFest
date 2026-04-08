@@ -79,6 +79,11 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
         signal: abortRef.current.signal,
       });
 
+      if (!res.ok) {
+        const errorText = (await res.text()) || 'Unable to connect to Holmes AI. Please try again.';
+        throw new Error(errorText);
+      }
+
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) throw new Error('No reader');
@@ -92,7 +97,7 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== 'AbortError') {
-        setMessages([...newMessages, { role: 'assistant', content: 'Unable to connect to Holmes AI. Please try again.' }]);
+        setMessages([...newMessages, { role: 'assistant', content: err.message }]);
       }
     } finally {
       setIsStreaming(false);

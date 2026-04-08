@@ -136,6 +136,11 @@ function AIAnalysis({ property }: { property: Property }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ property }),
       });
+      if (!res.ok) {
+        const errorText = (await res.text()) || 'Holmes AI is unavailable right now.';
+        setText(errorText);
+        return;
+      }
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) return;
@@ -223,6 +228,11 @@ function NeighborhoodView({ name, onClose }: { name: string; onClose: () => void
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ neighborhood: name }),
         });
+        if (!res.ok) {
+          const errorText = (await res.text()) || 'Holmes AI is unavailable right now.';
+          if (!cancelled) setSummary(errorText);
+          return;
+        }
         const reader = res.body?.getReader();
         const decoder = new TextDecoder();
         if (!reader) return;

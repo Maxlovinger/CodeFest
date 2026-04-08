@@ -62,64 +62,65 @@ function getBounds(geom: { type: string; coordinates: number[][][] | number[][][
 }
 
 export async function POST(req: NextRequest) {
-  const { neighborhood } = await req.json();
+  try {
+    const { neighborhood } = await req.json();
 
-  if (!neighborhood) {
-    return Response.json({ error: 'neighborhood required' }, { status: 400 });
-  }
+    if (!neighborhood) {
+      return Response.json({ error: 'neighborhood required' }, { status: 400 });
+    }
 
-  // Fetch neighborhood geometry from DB
-  const nbrRows = await query<{ name: string; geojson: { geometry: { type: string; coordinates: number[][][] | number[][][][] } } }>(
-    `SELECT name, geojson FROM neighborhoods WHERE name = $1 LIMIT 1`,
-    [neighborhood]
-  ).catch(() => []);
+    // Fetch neighborhood geometry from DB
+    const nbrRows = await query<{ name: string; geojson: { geometry: { type: string; coordinates: number[][][] | number[][][][] } } }>(
+      `SELECT name, geojson FROM neighborhoods WHERE name = $1 LIMIT 1`,
+      [neighborhood]
+    ).catch(() => []);
 
-  let stats = { vacant: 0, avgBlight: 0, violations: 0, critical: 0, high: 0 };
+    let stats = { vacant: 0, avgBlight: 0, violations: 0, critical: 0, high: 0 };
 
-  if (nbrRows.length > 0) {
-    const geom = nbrRows[0].geojson?.geometry;
-    if (geom) {
-      const { minLng, maxLng, minLat, maxLat } = getBounds(geom);
+    if (nbrRows.length > 0) {
+      const geom = nbrRows[0].geojson?.geometry;
+      if (geom) {
+        const { minLng, maxLng, minLat, maxLat } = getBounds(geom);
 
-      // Bounding-box pre-filter, then PIP in JS
-      const [propRows, violRows] = await Promise.all([
-        query<{ lng: number; lat: number; blight_score: number }>(
-          `SELECT lng, lat, blight_score FROM vacant_buildings
-           WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4
-           AND lat IS NOT NULL AND lng IS NOT NULL`,
-          [minLat, maxLat, minLng, maxLng]
-        ).catch(() => []),
-        query<{ lng: number; lat: number }>(
-          `SELECT lng, lat FROM violations
-           WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4
-           AND lat IS NOT NULL AND lng IS NOT NULL`,
-          [minLat, maxLat, minLng, maxLng]
-        ).catch(() => []),
-      ]);
+        // Bounding-box pre-filter, then PIP in JS
+        const [propRows, violRows] = await Promise.all([
+          query<{ lng: number; lat: number; blight_score: number }>(
+            `SELECT lng, lat, blight_score FROM vacant_buildings
+             WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4
+             AND lat IS NOT NULL AND lng IS NOT NULL`,
+            [minLat, maxLat, minLng, maxLng]
+          ).catch(() => []),
+          query<{ lng: number; lat: number }>(
+            `SELECT lng, lat FROM violations
+             WHERE lat BETWEEN $1 AND $2 AND lng BETWEEN $3 AND $4
+             AND lat IS NOT NULL AND lng IS NOT NULL`,
+            [minLat, maxLat, minLng, maxLng]
+          ).catch(() => []),
+        ]);
 
-      const props = propRows.filter(p => pointInGeometry(Number(p.lng), Number(p.lat), geom));
-      const viols = violRows.filter(v => pointInGeometry(Number(v.lng), Number(v.lat), geom));
+        const props = propRows.filter(p => pointInGeometry(Number(p.lng), Number(p.lat), geom));
+        const viols = violRows.filter(v => pointInGeometry(Number(v.lng), Number(v.lat), geom));
 
-      stats.vacant = props.length;
-      stats.violations = viols.length;
-      stats.critical = props.filter(p => Number(p.blight_score) >= 80).length;
-      stats.high = props.filter(p => Number(p.blight_score) >= 60).length;
-      if (props.length > 0) {
-        stats.avgBlight = Math.round(
-          props.reduce((sum, p) => sum + Number(p.blight_score), 0) / props.length
-        );
+        stats.vacant = props.length;
+        stats.violations = viols.length;
+        stats.critical = props.filter(p => Number(p.blight_score) >= 80).length;
+        stats.high = props.filter(p => Number(p.blight_score) >= 60).length;
+        if (props.length > 0) {
+          stats.avgBlight = Math.round(
+            props.reduce((sum, p) => sum + Number(p.blight_score), 0) / props.length
+          );
+        }
       }
     }
-  }
 
-  const ragChunks = await retrieveContext(
-    `${neighborhood.replace(/_/g, ' ')} neighborhood Philadelphia blight vacancy violations`,
-    5
-  );
-  const ragContext = formatRagContext(ragChunks);
+    const ragChunks = await retrieveContext(
+      `${neighborhood.replace(/_/g, ' ')} neighborhood Philadelphia blight vacancy violations`,
+      5
+    );
+    const ragContext = formatRagContext(ragChunks);
 
-  const displayName = neighborhood.replace(/_/g, ' ');
-  const prompt = `Summarize the housing situation in ${displayName}, Philadelphia in 3–4 sentences.
+    const displayName = neighborhood.replace(/_/g, ' ');
+    const prompt = `Summarize the housing situation in ${displayName}, Philadelphia in 3–4 sentences.
 
 Live data for this neighborhood:
 - Vacant/blighted properties: ${stats.vacant}
@@ -130,30 +131,37 @@ Live data for this neighborhood:
 
 Cover the overall risk level, what's driving it, and the single most impactful intervention. Be direct and specific to these numbers.`;
 
-  const groq = await getGroq();
-  const stream = await groq.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: HOLMES_SYSTEM_PROMPT + ragContext },
-      { role: 'user', content: prompt },
-    ],
-    stream: true,
-    max_tokens: 400,
-    temperature: 0.6,
-  });
+    const groq = await getGroq();
+    const stream = await groq.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: 'system', content: HOLMES_SYSTEM_PROMPT + ragContext },
+        { role: 'user', content: prompt },
+      ],
+      stream: true,
+      max_tokens: 400,
+      temperature: 0.6,
+    });
 
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content || '';
-        if (text) controller.enqueue(encoder.encode(text));
-      }
-      controller.close();
-    },
-  });
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      },
+    });
 
-  return new Response(readable, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Transfer-Encoding': 'chunked' },
-  });
+    return new Response(readable, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Transfer-Encoding': 'chunked' },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Groq error';
+    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+      status: 502,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  }
 }

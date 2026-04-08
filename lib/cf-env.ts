@@ -12,3 +12,11 @@ export async function getCfVar(key: string): Promise<string | undefined> {
     return undefined;
   }
 }
+
+export async function requireCfVar(key: string): Promise<string> {
+  const value = await getCfVar(key);
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}

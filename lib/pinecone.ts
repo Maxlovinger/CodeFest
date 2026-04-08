@@ -1,13 +1,13 @@
 import { Pinecone } from '@pinecone-database/pinecone';
-import { getCfVar } from './cf-env';
+import { requireCfVar } from './cf-env';
 
 export const INDEX_NAME = 'holmes-philadelphia';
 export const EMBED_MODEL = 'llama-text-embed-v2';
 export const EMBED_DIM = 1024;
 
 export async function getPinecone(): Promise<Pinecone> {
-  const apiKey = await getCfVar('PINECONE_API_KEY');
-  return new Pinecone({ apiKey: apiKey! });
+  const apiKey = await requireCfVar('PINECONE_API_KEY');
+  return new Pinecone({ apiKey });
 }
 
 export async function ensureIndex(): Promise<void> {

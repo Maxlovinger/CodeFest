@@ -88,6 +88,11 @@ export default function PolicyPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ neighborhood }),
       });
+      if (!res.ok) {
+        const errorText = (await res.text()) || 'Holmes AI is unavailable right now.';
+        setPolicyBrief(errorText);
+        return;
+      }
       const reader = res.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) return;

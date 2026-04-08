@@ -3,24 +3,25 @@ import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
 import { query } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
-  const { neighborhood } = await req.json();
+  try {
+    const { neighborhood } = await req.json();
 
-  let statsStr = '';
-  if (neighborhood) {
-    try {
-      const rows = await query<{ vacant: string; violations: string; evictions: string }>(
-        `SELECT (SELECT COUNT(*) FROM vacant_buildings WHERE address ILIKE $1) as vacant,
-                (SELECT COUNT(*) FROM violations WHERE address ILIKE $1) as violations,
-                (SELECT COUNT(*) FROM evictions WHERE address ILIKE $1) as evictions`,
-        [`%${neighborhood}%`]
-      );
-      if (rows[0]) {
-        statsStr = `\nNeighborhood data — Vacant: ${rows[0].vacant}, Violations: ${rows[0].violations}, Evictions: ${rows[0].evictions}`;
-      }
-    } catch { /* ignore */ }
-  }
+    let statsStr = '';
+    if (neighborhood) {
+      try {
+        const rows = await query<{ vacant: string; violations: string; evictions: string }>(
+          `SELECT (SELECT COUNT(*) FROM vacant_buildings WHERE address ILIKE $1) as vacant,
+                  (SELECT COUNT(*) FROM violations WHERE address ILIKE $1) as violations,
+                  (SELECT COUNT(*) FROM evictions WHERE address ILIKE $1) as evictions`,
+          [`%${neighborhood}%`]
+        );
+        if (rows[0]) {
+          statsStr = `\nNeighborhood data — Vacant: ${rows[0].vacant}, Violations: ${rows[0].violations}, Evictions: ${rows[0].evictions}`;
+        }
+      } catch { /* ignore */ }
+    }
 
-  const prompt = `Generate a structured policy brief for Philadelphia${neighborhood ? ` focusing on ${neighborhood}` : ' citywide'}.${statsStr}
+    const prompt = `Generate a structured policy brief for Philadelphia${neighborhood ? ` focusing on ${neighborhood}` : ' citywide'}.${statsStr}
 
 Format as:
 ## Executive Summary
@@ -37,30 +38,37 @@ Which city agencies, nonprofits, and community organizations should lead.
 
 Be specific, actionable, and grounded in Philadelphia's existing programs and political context.`;
 
-  const groq = await getGroq();
-  const stream = await groq.chat.completions.create({
-    model: MODEL,
-    messages: [
-      { role: 'system', content: HOLMES_SYSTEM_PROMPT },
-      { role: 'user', content: prompt },
-    ],
-    stream: true,
-    max_tokens: 1500,
-    temperature: 0.65,
-  });
+    const groq = await getGroq();
+    const stream = await groq.chat.completions.create({
+      model: MODEL,
+      messages: [
+        { role: 'system', content: HOLMES_SYSTEM_PROMPT },
+        { role: 'user', content: prompt },
+      ],
+      stream: true,
+      max_tokens: 1500,
+      temperature: 0.65,
+    });
 
-  const encoder = new TextEncoder();
-  const readable = new ReadableStream({
-    async start(controller) {
-      for await (const chunk of stream) {
-        const text = chunk.choices[0]?.delta?.content || '';
-        if (text) controller.enqueue(encoder.encode(text));
-      }
-      controller.close();
-    },
-  });
+    const encoder = new TextEncoder();
+    const readable = new ReadableStream({
+      async start(controller) {
+        for await (const chunk of stream) {
+          const text = chunk.choices[0]?.delta?.content || '';
+          if (text) controller.enqueue(encoder.encode(text));
+        }
+        controller.close();
+      },
+    });
 
-  return new Response(readable, {
-    headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-  });
+    return new Response(readable, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown Groq error';
+    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+      status: 502,
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  }
 }
