@@ -17,7 +17,7 @@ export interface RagChunk {
 export async function retrieveContext(query: string, topK = 6): Promise<RagChunk[]> {
   try {
     const vector = await embedQuery(query);
-    const index = getIndex();
+    const index = await getIndex();
     const results = await index.query({
       vector,
       topK,

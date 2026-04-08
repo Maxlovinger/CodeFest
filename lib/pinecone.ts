@@ -1,20 +1,17 @@
 import { Pinecone } from '@pinecone-database/pinecone';
+import { getCfVar } from './cf-env';
 
 export const INDEX_NAME = 'holmes-philadelphia';
 export const EMBED_MODEL = 'llama-text-embed-v2';
 export const EMBED_DIM = 1024;
 
-let _pc: Pinecone | null = null;
-
-export function getPinecone(): Pinecone {
-  if (!_pc) {
-    _pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
-  }
-  return _pc;
+export async function getPinecone(): Promise<Pinecone> {
+  const apiKey = await getCfVar('PINECONE_API_KEY');
+  return new Pinecone({ apiKey: apiKey! });
 }
 
 export async function ensureIndex(): Promise<void> {
-  const pc = getPinecone();
+  const pc = await getPinecone();
   const { indexes } = await pc.listIndexes();
   const exists = indexes?.some(i => i.name === INDEX_NAME);
   if (!exists) {
@@ -29,7 +26,7 @@ export async function ensureIndex(): Promise<void> {
 }
 
 export async function embedTexts(texts: string[]): Promise<number[][]> {
-  const pc = getPinecone();
+  const pc = await getPinecone();
   const result = await pc.inference.embed({
     model: EMBED_MODEL,
     inputs: texts,
@@ -40,7 +37,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
 }
 
 export async function embedQuery(text: string): Promise<number[]> {
-  const pc = getPinecone();
+  const pc = await getPinecone();
   const result = await pc.inference.embed({
     model: EMBED_MODEL,
     inputs: [text],
@@ -50,6 +47,6 @@ export async function embedQuery(text: string): Promise<number[]> {
   return Array.from(((result as any).data[0] as { values: number[] }).values);
 }
 
-export function getIndex() {
-  return getPinecone().index(INDEX_NAME);
+export async function getIndex() {
+  return (await getPinecone()).index(INDEX_NAME);
 }

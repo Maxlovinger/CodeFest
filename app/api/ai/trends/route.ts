@@ -39,7 +39,7 @@ Current Philadelphia Housing Data:
 - Code violations: ${vi.total || 0} (structural: ${vi.structural || 0}, electrical: ${vi.electrical || 0}, sanitation: ${vi.sanitation || 0})
 - Eviction filings: ${ev.total || 0} (avg judgment: $${Math.round(parseFloat(ev.avg_amount || '0'))})`;
 
-  const groq = getGroq();
+  const groq = await getGroq();
   const stream = await groq.chat.completions.create({
     model: MODEL,
     messages: [

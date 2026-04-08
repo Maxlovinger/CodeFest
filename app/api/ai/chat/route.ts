@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     ragContext +
     (context ? `\n\nMap state: ${context}` : '');
 
-  const groq = getGroq();
+  const groq = await getGroq();
   const stream = await groq.chat.completions.create({
     model: MODEL,
     messages: [

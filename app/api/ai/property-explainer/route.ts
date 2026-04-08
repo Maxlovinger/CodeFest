@@ -27,7 +27,7 @@ Property:
 - Category: ${property.category || 'Unknown'}
 - Violations: ${property.violations?.length || 0} recorded`;
 
-  const groq = getGroq();
+  const groq = await getGroq();
   const stream = await groq.chat.completions.create({
     model: MODEL,
     messages: [

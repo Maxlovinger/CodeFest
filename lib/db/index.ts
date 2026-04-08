@@ -6,6 +6,8 @@ export async function query<T = Record<string, unknown>>(
 ): Promise<T[]> {
   const sql = neon(process.env.DATABASE_URL!);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const result = await (sql as any)(text, params ?? []);
-  return result as T[];
+  const result: any = params?.length
+    ? await sql.query(text, params)
+    : await sql.query(text);
+  return (result.rows ?? result) as T[];
 }

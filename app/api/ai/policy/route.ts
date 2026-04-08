@@ -37,7 +37,7 @@ Which city agencies, nonprofits, and community organizations should lead.
 
 Be specific, actionable, and grounded in Philadelphia's existing programs and political context.`;
 
-  const groq = getGroq();
+  const groq = await getGroq();
   const stream = await groq.chat.completions.create({
     model: MODEL,
     messages: [

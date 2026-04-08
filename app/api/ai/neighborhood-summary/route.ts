@@ -130,7 +130,7 @@ Live data for this neighborhood:
 
 Cover the overall risk level, what's driving it, and the single most impactful intervention. Be direct and specific to these numbers.`;
 
-  const groq = getGroq();
+  const groq = await getGroq();
   const stream = await groq.chat.completions.create({
     model: MODEL,
     messages: [

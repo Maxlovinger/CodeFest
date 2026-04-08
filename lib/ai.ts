@@ -1,12 +1,9 @@
 import Groq from 'groq-sdk';
+import { getCfVar } from './cf-env';
 
-let client: Groq | null = null;
-
-export function getGroq(): Groq {
-  if (!client) {
-    client = new Groq({ apiKey: process.env.GROQ_API_KEY });
-  }
-  return client;
+export async function getGroq(): Promise<Groq> {
+  const apiKey = await getCfVar('GROQ_API_KEY');
+  return new Groq({ apiKey });
 }
  
 export const HOLMES_SYSTEM_PROMPT = `You are Holmes AI — the civic intelligence engine of The Holmes Project, named after Thomas Holme, William Penn's surveyor who mapped Philadelphia in 1683. You know this city deeply: its housing crisis, vacant properties, blight patterns, evictions, displacement pressures, and the policy levers that actually move things.

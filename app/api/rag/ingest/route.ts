@@ -208,7 +208,7 @@ export async function POST(_req: NextRequest) {
       return Response.json({ error: 'No data to ingest' }, { status: 400 });
     }
 
-    const index = getIndex();
+    const index = await getIndex();
     let upserted = 0;
 
     // Embed + upsert in batches
