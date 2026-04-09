@@ -95,7 +95,7 @@ function StarCanvas() {
 }
 
 /* ─────────────────────────────────────────────
-   SKYLINE SVG — Philadelphia silhouette
+   SKYLINE SVG - Philadelphia silhouette
 ───────────────────────────────────────────── */
 function Skyline({ y }: { y: MotionValue<number> }) {
   return (
@@ -118,7 +118,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
           <filter id="win-glow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
         </defs>
 
-        {/* Far background — faint distant buildings */}
+        {/* Far background - faint distant buildings */}
         <rect x="0" y="230" width="1200" height="90" fill="url(#sl-fill)" opacity="0.3" />
         {[50,120,190,280,400,520,640,750,860,980,1080].map((x,i) => (
           <rect key={i} x={x} y={230 - (i%3)*18 - 12} width={30+i%4*8} height={90+i%3*18} fill="#1A0848" opacity="0.5" />
@@ -126,7 +126,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
 
         {/* === MAIN SKYLINE === */}
 
-        {/* 30th St Station — far left neoclassical block */}
+        {/* 30th St Station - far left neoclassical block */}
         <rect x="30" y="170" width="140" height="150" fill="url(#sl-fill)" />
         <rect x="48" y="148" width="105" height="26" fill="url(#sl-fill)" />
         <rect x="70" y="130" width="62" height="22" fill="url(#sl-fill)" />
@@ -138,7 +138,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
         <rect x="268" y="210" width="48" height="110" fill="url(#sl-fill)" />
         <rect x="333" y="200" width="42" height="120" fill="url(#sl-fill)" />
 
-        {/* CITY HALL — centre-left, dome + tower */}
+        {/* CITY HALL - centre-left, dome + tower */}
         <rect x="418" y="165" width="130" height="155" fill="url(#sl-fill)" />
         <rect x="438" y="148" width="92" height="22" fill="url(#sl-fill)" />
         {/* Dome */}
@@ -156,7 +156,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
         <rect x="636" y="175" width="44" height="145" fill="url(#sl-fill)" />
         <rect x="694" y="160" width="38" height="160" fill="url(#sl-fill)" />
 
-        {/* COMCAST / LIBERTY ONE — tallest, centre-right */}
+        {/* COMCAST / LIBERTY ONE - tallest, centre-right */}
         <rect x="756" y="75" width="78" height="245" fill="url(#sl-fill)" />
         {/* Spire */}
         <polygon points="795,40 810,76 780,76" fill="#5A1AB8" />
@@ -181,7 +181,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
         <line x1="1000" y1="128" x2="1055" y2="128" stroke="#1A0848" strokeWidth="2" opacity="0.7" />
         <line x1="1050" y1="128" x2="1050" y2="152" stroke="#1A0848" strokeWidth="1" strokeDasharray="4,4" opacity="0.5" />
 
-        {/* BEN FRANKLIN BRIDGE — far right */}
+        {/* BEN FRANKLIN BRIDGE - far right */}
         <rect x="1085" y="120" width="18" height="200" fill="#2D0B5E" opacity="0.8" />
         <rect x="1142" y="120" width="18" height="200" fill="#2D0B5E" opacity="0.8" />
         <path d="M 1085 125 Q 1130 200 1160 125" stroke="#471396" strokeWidth="2.5" fill="none" opacity="0.7" />
@@ -189,7 +189,7 @@ function Skyline({ y }: { y: MotionValue<number> }) {
           <line key={i} x1={1090+off*2} y1="125" x2={1090+off*2} y2={280} stroke="#2D0B5E" strokeWidth="0.6" opacity="0.45" />
         ))}
 
-        {/* Main fill — everything below tops */}
+        {/* Main fill - everything below tops */}
         <rect x="0" y="290" width="1200" height="32" fill="#050015" />
 
         {/* Top glow edge */}
@@ -227,7 +227,7 @@ const METRICS = [
   { icon: Home,          label: 'Vacant Properties',  raw: 3497,  display: '3,497',  color: '#FF2D55', desc: 'Blighted parcels tracked across all Philadelphia zip codes' },
   { icon: AlertTriangle, label: 'Code Violations',    raw: 4954,  display: '4,954',  color: '#FF6B35', desc: 'Active L&I violations on record, updated daily' },
   { icon: MapPin,        label: 'Neighborhoods',      raw: 159,   display: '159',    color: '#B13BFF', desc: 'All 159 mapped with real-time blight risk scores' },
-  { icon: TrendingUp,    label: 'AI Risk Score',      raw: 0,     display: '0–100',  color: '#FFCC00', desc: 'Machine learning blight index per property' },
+  { icon: TrendingUp,    label: 'AI Risk Score',      raw: 0,     display: '0-100',  color: '#FFCC00', desc: 'Machine learning blight index per property' },
 ];
 
 function useCountUp(target: number, active: boolean) {
@@ -307,9 +307,9 @@ function MetricCard({ icon: Icon, label, raw, display, color, desc, i }: typeof 
    FEATURE CARD
 ───────────────────────────────────────────── */
 const FEATURES = [
-  { icon: MapPin,   title: 'Live Survey Map',      body: 'Every vacant parcel, L&I violation, and eviction filing plotted on a dark Philadelphia cartography layer. Click any neighborhood for an AI-generated briefing.',  color: '#B13BFF' },
-  { icon: Brain,    title: 'Holmes AI — Ask anything', body: 'Powered by Groq llama-3.3-70b streaming. Get neighborhood risk summaries, policy briefs, trend analysis, and property-level explanations in seconds.', color: '#FFCC00' },
-  { icon: Database, title: 'Open Data Pipeline',   body: 'Six OpenDataPhilly sources auto-ingested, normalized, and scored. The survey refreshes itself — the same way Holme\'s original grid updated with the city.',        color: '#00E5A0' },
+  { icon: MapPin,   title: 'Housing + Signal Maps', body: 'Explore vacant properties, neighborhood risk, and the new connectivity layer in one map-first civic interface built for judges, residents, and field teams.', color: '#B13BFF' },
+  { icon: Brain,    title: 'Holmes AI - Civic explainer', body: 'Ask for neighborhood summaries, policy briefs, tract risk explanations, and property-level context with Cloudflare Workers AI streaming through the platform.', color: '#FFCC00' },
+  { icon: Database, title: 'Challenge Data Pipeline', body: 'Holmes now ingests housing data, Philadelphia connectivity tracts, public Wi-Fi sites, and Glass Box audit logs so every major section runs on real inputs.', color: '#00E5A0' },
 ];
 
 function FeatureCard({ icon: Icon, title, body, color, i }: typeof FEATURES[0] & { i: number }) {
@@ -503,7 +503,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.85, duration: 0.55 }}
           >
-            Mapping Philadelphia's housing crisis — block by block — with AI intelligence and open civic data.
+            Mapping Philadelphia&apos;s housing crisis, connectivity blind spots, and AI intervention traces with one public-facing civic intelligence platform.
           </motion.p>
 
           {/* CTAs */}
@@ -513,7 +513,7 @@ export default function LandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.5 }}
           >
-            <Link href="/map" aria-label="Open the survey map">
+            <Link href="/map" aria-label="Open the original survey map">
               <motion.button
                 className="relative flex items-center gap-2.5 px-8 py-3.5 rounded-2xl text-sm font-bold cursor-pointer overflow-hidden min-h-[48px]"
                 style={{ fontFamily: 'Syne', background: 'linear-gradient(135deg, #B13BFF 0%, #471396 100%)', color: 'white', letterSpacing: '0.05em', boxShadow: '0 0 36px rgba(177,59,255,0.45), 0 6px 20px rgba(0,0,0,0.4)' }}
@@ -525,18 +525,18 @@ export default function LandingPage() {
                   style={{ background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)' }}
                   whileHover={{ opacity: 1, x: ['−100%', '200%'] }}
                   transition={{ duration: 0.55 }} />
-                Open Survey Map
+                Open Original Map
                 <ArrowRight size={15} />
               </motion.button>
             </Link>
-            <Link href="/insights" aria-label="View insights">
+            <Link href="/glass-box" aria-label="Open the Glass Box dashboard">
               <motion.button
                 className="flex items-center gap-2 px-6 py-3.5 rounded-2xl text-sm font-semibold cursor-pointer min-h-[48px]"
                 style={{ fontFamily: 'Syne', color: 'var(--text-secondary)', border: '1px solid rgba(177,59,255,0.22)', background: 'rgba(45,11,94,0.28)', letterSpacing: '0.04em' }}
                 whileHover={{ color: 'white', borderColor: 'rgba(177,59,255,0.48)', background: 'rgba(45,11,94,0.48)' }}
                 whileTap={{ scale: 0.97 }}
               >
-                View Insights
+                Open Glass Box
               </motion.button>
             </Link>
           </motion.div>
@@ -555,7 +555,7 @@ export default function LandingPage() {
           </motion.div>
         </motion.div>
 
-        {/* Philadelphia skyline — parallax */}
+        {/* Philadelphia skyline - parallax */}
         <Skyline y={skylineY} />
         {/* Gradient ground fade */}
         <div className="relative z-20 h-16"
@@ -575,7 +575,7 @@ export default function LandingPage() {
             Philadelphia's housing crisis, quantified
           </h2>
           <p className="text-sm max-w-md mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
-            Real addresses. Real violations. Pulled from six OpenDataPhilly sources and scored by machine intelligence — updated automatically.
+            Real addresses. Real violations. Pulled from six OpenDataPhilly sources and scored by machine intelligence - updated automatically.
           </p>
         </motion.div>
 
@@ -597,7 +597,7 @@ export default function LandingPage() {
             What is a Blight Score?
           </h2>
           <p className="text-sm max-w-xl mx-auto leading-relaxed" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
-            Every parcel in Philadelphia gets a machine-calculated risk index from 0–100. Here's how we build it.
+            Every parcel in Philadelphia gets a machine-calculated risk index from 0-100. Here's how we build it.
           </p>
         </motion.div>
 
@@ -624,7 +624,7 @@ export default function LandingPage() {
         {/* Factor grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {([
-            { Icon: ClipboardList, weight: '30%', title: 'Code Violations', desc: 'Active L&I violations — structural, electrical, sanitation — weighted by severity and recency.', color: '#FF2D55' },
+            { Icon: ClipboardList, weight: '30%', title: 'Code Violations', desc: 'Active L&I violations - structural, electrical, sanitation - weighted by severity and recency.', color: '#FF2D55' },
             { Icon: Building2,     weight: '25%', title: 'Vacancy Status',  desc: 'Confirmed vacant parcels from the Philadelphia Vacant Property database and utility shutoffs.', color: '#FF6B35' },
             { Icon: Banknote,      weight: '20%', title: 'Tax Delinquency', desc: 'Years of unpaid property taxes compound the risk score exponentially past year two.', color: '#FFCC00' },
             { Icon: Pin,           weight: '15%', title: 'Eviction Filings', desc: 'Eviction activity signals instability. High eviction density lifts scores for the whole block.', color: '#B13BFF' },
@@ -655,10 +655,10 @@ export default function LandingPage() {
         <motion.div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3"
           initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
           {[
-            { range: '0–39', label: 'Low Risk', desc: 'Monitor quarterly', color: '#00E5A0', bg: 'rgba(0,229,160,0.07)' },
-            { range: '40–59', label: 'Medium Risk', desc: 'LandCare eligible', color: '#FFCC00', bg: 'rgba(255,204,0,0.07)' },
-            { range: '60–79', label: 'High Risk', desc: 'L&I escalation', color: '#FF6B35', bg: 'rgba(255,107,53,0.07)' },
-            { range: '80–100', label: 'Critical', desc: 'Conservatorship', color: '#FF2D55', bg: 'rgba(255,45,85,0.07)' },
+            { range: '0-39', label: 'Low Risk', desc: 'Monitor quarterly', color: '#00E5A0', bg: 'rgba(0,229,160,0.07)' },
+            { range: '40-59', label: 'Medium Risk', desc: 'LandCare eligible', color: '#FFCC00', bg: 'rgba(255,204,0,0.07)' },
+            { range: '60-79', label: 'High Risk', desc: 'L&I escalation', color: '#FF6B35', bg: 'rgba(255,107,53,0.07)' },
+            { range: '80-100', label: 'Critical', desc: 'Conservatorship', color: '#FF2D55', bg: 'rgba(255,45,85,0.07)' },
           ].map(tier => (
             <div key={tier.range} className="rounded-xl p-4 text-center" style={{ background: tier.bg, border: `1px solid ${tier.color}25` }}>
               <div className="text-xl font-black mb-1" style={{ fontFamily: 'JetBrains Mono', color: tier.color }}>{tier.range}</div>
@@ -701,9 +701,9 @@ export default function LandingPage() {
           </h2>
           <div className="space-y-4 max-w-2xl">
             {[
-              'In 1683, Thomas Holme laid a grid across a swampy river peninsula and called it Philadelphia. As William Penn\'s Surveyor General, he didn\'t draw mere lines on parchment — he mapped a future, ensuring the city would grow with intentionality.',
+              'In 1683, Thomas Holme laid a grid across a swampy river peninsula and called it Philadelphia. As William Penn\'s Surveyor General, he didn\'t draw mere lines on parchment - he mapped a future, ensuring the city would grow with intentionality.',
               null, // spacer for inline highlight
-              'Three hundred and forty-two years later, that grid still exists — but stretching across it are over 21,000 vacant properties, 4,000+ code violations, and thousands of eviction filings. The city Thomas Holme imagined is in crisis.',
+              'Three hundred and forty-two years later, that grid still exists - but stretching across it are over 21,000 vacant properties, 4,000+ code violations, and thousands of eviction filings. The city Thomas Holme imagined is in crisis.',
               'The Holmes Project carries his name as both tribute and mission. Every vacant building, every blight score, every eviction filing is a data point in a new survey of the city we inherited.',
             ].filter(Boolean).map((text, i) => (
               <motion.p key={i} className="text-sm leading-relaxed"
@@ -745,6 +745,45 @@ export default function LandingPage() {
         </div>
       </section>
 
+      <section className="relative z-10 px-5 sm:px-8 py-12">
+        <motion.div
+          className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2"
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          {[
+            {
+              title: 'Dead Zone Detective',
+              body: 'A live Leaflet connectivity map that scores tract-level risk, surfaces equity patterns, and explains local public Wi-Fi fallback in plain English.',
+              color: '#7CD9FF',
+            },
+            {
+              title: 'Glass Box',
+              body: 'An audit dashboard that parses shared inhibitor logs into timelines, action summaries, and policy-trigger views for non-technical review.',
+              color: '#FFCC00',
+            },
+          ].map(card => (
+            <div
+              key={card.title}
+              className="rounded-2xl p-5 text-center"
+              style={{ background: 'rgba(45,11,94,0.22)', border: `1px solid ${card.color}22` }}
+            >
+              <p className="mb-3 text-[10px] uppercase tracking-[0.24em]" style={{ fontFamily: 'JetBrains Mono', color: card.color }}>
+                Challenge
+              </p>
+              <h3 className="mb-2 text-lg font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                {card.title}
+              </h3>
+              <p className="text-sm leading-7" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
+                {card.body}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+      </section>
+
       {/* ═══════════════════════════════════════
           FINAL CTA
       ═══════════════════════════════════════ */}
@@ -771,7 +810,7 @@ export default function LandingPage() {
             Begin the Survey
           </h2>
           <p className="text-sm mb-9 leading-relaxed" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
-            Open the live map. Click any neighborhood. Ask Holmes anything. The data is already there — waiting to be read.
+            Open the live map. Click any neighborhood. Ask Holmes anything. The data is already there - waiting to be read.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">

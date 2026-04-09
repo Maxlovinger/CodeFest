@@ -1,6 +1,16 @@
 import { NextRequest } from 'next/server';
-import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
+import { formatAiError, HOLMES_BEHAVIOR_PROMPT, HOLMES_SYSTEM_PROMPT, streamHolmesText } from '@/lib/ai';
 import { retrieveContext, formatRagContext } from '@/lib/rag';
+
+function formatUiContext(context: unknown): string {
+  if (!context) return '';
+  if (typeof context === 'string') return `\n\nCurrent UI context:\n${context}`;
+  try {
+    return `\n\nCurrent UI context:\n${JSON.stringify(context, null, 2)}`;
+  } catch {
+    return '';
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -8,48 +18,28 @@ export async function POST(req: NextRequest) {
 
     // Last user message is the query we use for RAG retrieval
     const lastUserMsg: string = messages.findLast((m: { role: string; content: string }) => m.role === 'user')?.content ?? '';
+    const uiContext = formatUiContext(context);
 
     // Retrieve relevant context from Pinecone in parallel with building the prompt
-    const ragChunks = await retrieveContext(lastUserMsg, 6);
+    const ragChunks = await retrieveContext(`${lastUserMsg}\n${uiContext}`, 8);
     const ragContext = formatRagContext(ragChunks);
 
     const systemPrompt =
       HOLMES_SYSTEM_PROMPT +
+      HOLMES_BEHAVIOR_PROMPT +
       ragContext +
-      (context ? `\n\nMap state: ${context}` : '');
+      uiContext;
 
-    const groq = await getGroq();
-    const stream = await groq.chat.completions.create({
-      model: MODEL,
+    return await streamHolmesText({
       messages: [
         { role: 'system', content: systemPrompt },
         ...messages,
       ],
-      stream: true,
-      max_tokens: 600,
+      maxTokens: 600,
       temperature: 0.7,
     });
-
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(readable, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'Transfer-Encoding': 'chunked',
-      },
-    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Groq error';
-    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+    return new Response(formatAiError(error), {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });

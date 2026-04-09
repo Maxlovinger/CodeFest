@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Search, Download, ChevronLeft, ChevronRight, Database, ChevronUp, ChevronDown as ChevronDownIcon } from 'lucide-react';
 import PageNav from '@/components/PageNav';
+import DataIngestButton from '@/components/DataIngestButton';
 
 interface Property {
   id: number;
@@ -150,6 +151,56 @@ export default function DataPage() {
             </button>
           </motion.div>
 
+          <motion.section
+            className="grid gap-4 lg:grid-cols-3 mb-6"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <div
+              className="rounded-[24px] p-5 lg:col-span-2"
+              style={{
+                background: 'linear-gradient(145deg, rgba(5,10,34,0.94) 0%, rgba(8,16,64,0.88) 52%, rgba(22,7,70,0.9) 100%)',
+                border: '1px solid rgba(124,217,255,0.18)',
+              }}
+            >
+              <p className="text-[10px] uppercase tracking-[0.28em] mb-2" style={{ color: '#7CD9FF', fontFamily: 'Syne, sans-serif' }}>
+                Challenge Data Ops
+              </p>
+              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                Refresh the new Signal and Glass Box pipelines without leaving the product.
+              </h2>
+              <p className="text-sm mt-3 max-w-2xl leading-7" style={{ color: 'rgba(255,255,255,0.74)', fontFamily: 'DM Sans, sans-serif' }}>
+                Holmes now carries three parallel data stories: vacant property intelligence, Dead Zone Detective connectivity scoring, and Glass Box audit explainability. These controls refresh the challenge datasets directly into Neon.
+              </p>
+              <div className="flex flex-wrap gap-4 mt-5">
+                <DataIngestButton endpoint="/api/signal/ingest" label="Refresh signal data" />
+                <DataIngestButton endpoint="/api/audit/ingest" label="Refresh audit logs" />
+              </div>
+            </div>
+
+            <div
+              className="rounded-[24px] p-5"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(177,59,255,0.15)',
+                backdropFilter: 'blur(14px)',
+              }}
+            >
+              <div className="flex items-center gap-2 mb-3" style={{ color: 'var(--electric)' }}>
+                <Database size={16} />
+                <span className="text-sm font-semibold" style={{ fontFamily: 'Syne, sans-serif', color: 'white' }}>
+                  Loaded sources
+                </span>
+              </div>
+              <div className="space-y-3 text-sm" style={{ color: 'rgba(255,255,255,0.74)', fontFamily: 'DM Sans, sans-serif' }}>
+                <p>Philadelphia vacant properties from OpenDataPhilly</p>
+                <p>Philadelphia connectivity tracts and public Wi-Fi layers from ArcGIS</p>
+                <p>Applied AI Studio inhibitor sample logs for Glass Box</p>
+              </div>
+            </div>
+          </motion.section>
+
           {/* Filters bar */}
           <motion.div
             className="flex flex-col sm:flex-row gap-3 mb-5"
@@ -281,23 +332,23 @@ export default function DataPage() {
                       >
                         <td className="px-4 py-3">
                           <p className="text-xs font-medium" style={{ fontFamily: 'JetBrains Mono', color: 'var(--text-primary)', lineHeight: 1.4 }}>
-                            {prop.address || '—'}
+                            {prop.address || '-'}
                           </p>
                         </td>
                         <td className="px-4 py-3">
                           <p className="text-xs truncate max-w-[140px]" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans' }}
                             title={prop.owner}>
-                            {prop.owner || '—'}
+                            {prop.owner || '-'}
                           </p>
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-xs" style={{ fontFamily: 'JetBrains Mono', color: 'var(--text-muted)' }}>
-                            {prop.zip_code || '—'}
+                            {prop.zip_code || '-'}
                           </span>
                         </td>
                         <td className="px-4 py-3">
                           <span className="text-xs" style={{ fontFamily: 'JetBrains Mono', color: prop.market_value ? 'var(--gold)' : 'var(--text-muted)' }}>
-                            {prop.market_value ? `$${parseInt(String(prop.market_value)).toLocaleString()}` : '—'}
+                            {prop.market_value ? `$${parseInt(String(prop.market_value)).toLocaleString()}` : '-'}
                           </span>
                         </td>
                         <td className="px-4 py-3">
@@ -319,7 +370,7 @@ export default function DataPage() {
                         </td>
                         <td className="px-4 py-3">
                           <p className="text-xs truncate max-w-[120px]" style={{ color: 'var(--text-muted)', fontFamily: 'DM Sans' }}>
-                            {prop.category || '—'}
+                            {prop.category || '-'}
                           </p>
                         </td>
                       </motion.tr>
@@ -336,7 +387,7 @@ export default function DataPage() {
                 style={{ borderTop: '1px solid rgba(177,59,255,0.1)', background: 'rgba(45,11,94,0.15)' }}
               >
                 <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
-                  {(page * PAGE_SIZE + 1).toLocaleString()}–{Math.min((page + 1) * PAGE_SIZE, total).toLocaleString()} of {total.toLocaleString()}
+                  {(page * PAGE_SIZE + 1).toLocaleString()}-{Math.min((page + 1) * PAGE_SIZE, total).toLocaleString()} of {total.toLocaleString()}
                 </p>
                 <div className="flex items-center gap-2">
                   <button

@@ -148,7 +148,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
         setTimeout(() => setDone(true), 600);
         setTimeout(() => onComplete(), 1200);
       } catch (err) {
-        setMessage('Survey error — loading cached data...');
+        setMessage('Survey error - loading cached data...');
         setProgress(100);
         setTimeout(() => setDone(true), 800);
         setTimeout(() => onComplete(), 1400);
@@ -205,7 +205,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
                 className="text-center text-lg"
                 style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-secondary)', fontStyle: 'italic' }}
               >
-                Mapping Philadelphia's Housing Crisis — Block by Block
+                Mapping Philadelphia's Housing Crisis - Block by Block
               </p>
 
               <p

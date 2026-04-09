@@ -151,7 +151,7 @@ export default function PolicyPage() {
                 Philadelphia's vacancy crisis is not an abstract problem
               </h2>
               <p className="text-sm leading-relaxed max-w-2xl" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-secondary)', fontStyle: 'italic', lineHeight: 1.8 }}>
-                Every blighted block is a compounding failure — of property ownership, public safety, municipal revenue, and community health. The numbers are real. So are the consequences.
+                Every blighted block is a compounding failure - of property ownership, public safety, municipal revenue, and community health. The numbers are real. So are the consequences.
               </p>
             </div>
 
@@ -180,7 +180,7 @@ export default function PolicyPage() {
               {[
                 {
                   heading: 'Blight spreads like infection',
-                  body: 'A single vacant property reduces surrounding home values by up to 20%. When clustered — as they are across Kensington, Strawberry Mansion, and North Philly — the effect compounds. Entire blocks become uninsurable, unsellable, and unsafe. Blight is not a symptom of poverty; it actively manufactures it.',
+                  body: 'A single vacant property reduces surrounding home values by up to 20%. When clustered - as they are across Kensington, Strawberry Mansion, and North Philly - the effect compounds. Entire blocks become uninsurable, unsellable, and unsafe. Blight is not a symptom of poverty; it actively manufactures it.',
                 },
                 {
                   heading: 'Public safety follows property health',
@@ -188,11 +188,11 @@ export default function PolicyPage() {
                 },
                 {
                   heading: 'The city loses revenue it cannot afford to lose',
-                  body: 'Philadelphia has one of the highest poverty rates of any major U.S. city. Blighted properties generate minimal tax revenue while consuming disproportionate city services — fire response, code enforcement, emergency demolition, and legal costs. Returning even a fraction of vacant land to productive use would materially change the city\'s fiscal position.',
+                  body: 'Philadelphia has one of the highest poverty rates of any major U.S. city. Blighted properties generate minimal tax revenue while consuming disproportionate city services - fire response, code enforcement, emergency demolition, and legal costs. Returning even a fraction of vacant land to productive use would materially change the city\'s fiscal position.',
                 },
                 {
                   heading: 'Displacement follows vacancy',
-                  body: 'Counterintuitively, blight and displacement go hand in hand. As neighborhoods deteriorate, long-term residents are pushed out by deteriorating conditions — then priced out when speculative investment eventually arrives. The window for community-centered intervention is narrow. Data-driven tools like this platform exist to open that window wider.',
+                  body: 'Counterintuitively, blight and displacement go hand in hand. As neighborhoods deteriorate, long-term residents are pushed out by deteriorating conditions - then priced out when speculative investment eventually arrives. The window for community-centered intervention is narrow. Data-driven tools like this platform exist to open that window wider.',
                 },
               ].map(({ heading, body }) => (
                 <div key={heading}>
@@ -205,8 +205,8 @@ export default function PolicyPage() {
             {/* Bottom callout */}
             <div className="mx-6 mb-6 px-5 py-4 rounded-xl" style={{ background: 'rgba(177,59,255,0.07)', border: '1px solid rgba(177,59,255,0.2)', borderLeft: '3px solid var(--electric)' }}>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.78 }}>
-                <span className="font-semibold" style={{ color: 'white' }}>The Holmes Project exists because the data already exists — it just wasn't connected.</span>{' '}
-                OpenDataPhilly publishes vacancy records, L&I violations, eviction filings, and property assessments. We pulled them together, scored every parcel with a machine learning blight index, and made the whole picture visible and queryable in real time. The policy brief generator below turns that data into actionable recommendations — for community organizers, city planners, and anyone who needs to make the case for intervention.
+                <span className="font-semibold" style={{ color: 'white' }}>The Holmes Project exists because the data already exists - it just wasn't connected.</span>{' '}
+                OpenDataPhilly publishes vacancy records, L&I violations, eviction filings, and property assessments. We pulled them together, scored every parcel with a machine learning blight index, and made the whole picture visible and queryable in real time. The policy brief generator below turns that data into actionable recommendations - for community organizers, city planners, and anyone who needs to make the case for intervention.
               </p>
             </div>
           </motion.div>

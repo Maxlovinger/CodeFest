@@ -220,10 +220,10 @@ export default function Sidebar({
           </p>
           <div className="flex flex-col gap-1.5">
             {[
-              { color: 'var(--risk-critical)', label: 'Critical  80–100', bar: 100 },
-              { color: 'var(--risk-high)', label: 'High  60–79', bar: 75 },
-              { color: 'var(--risk-medium)', label: 'Medium  40–59', bar: 50 },
-              { color: 'var(--risk-low)', label: 'Low  0–39', bar: 28 },
+              { color: 'var(--risk-critical)', label: 'Critical  80-100', bar: 100 },
+              { color: 'var(--risk-high)', label: 'High  60-79', bar: 75 },
+              { color: 'var(--risk-medium)', label: 'Medium  40-59', bar: 50 },
+              { color: 'var(--risk-low)', label: 'Low  0-39', bar: 28 },
             ].map(item => (
               <div key={item.label}>
                 <div className="flex items-center justify-between mb-0.5">

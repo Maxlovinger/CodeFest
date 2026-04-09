@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
+import { formatAiError, HOLMES_SYSTEM_PROMPT, streamHolmesText } from '@/lib/ai';
 import { query } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
           [`%${neighborhood}%`]
         );
         if (rows[0]) {
-          statsStr = `\nNeighborhood data — Vacant: ${rows[0].vacant}, Violations: ${rows[0].violations}, Evictions: ${rows[0].evictions}`;
+          statsStr = `\nNeighborhood data - Vacant: ${rows[0].vacant}, Violations: ${rows[0].violations}, Evictions: ${rows[0].evictions}`;
         }
       } catch { /* ignore */ }
     }
@@ -38,35 +38,16 @@ Which city agencies, nonprofits, and community organizations should lead.
 
 Be specific, actionable, and grounded in Philadelphia's existing programs and political context.`;
 
-    const groq = await getGroq();
-    const stream = await groq.chat.completions.create({
-      model: MODEL,
+    return await streamHolmesText({
       messages: [
         { role: 'system', content: HOLMES_SYSTEM_PROMPT },
         { role: 'user', content: prompt },
       ],
-      stream: true,
-      max_tokens: 1500,
+      maxTokens: 1500,
       temperature: 0.65,
     });
-
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(readable, {
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
-    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Groq error';
-    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+    return new Response(formatAiError(error), {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });

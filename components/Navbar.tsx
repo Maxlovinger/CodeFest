@@ -13,9 +13,10 @@ interface NavbarProps {
 
 const NAV_LINKS = [
   { href: '/map', label: 'Map' },
+  { href: '/signal', label: 'Dead Zone' },
+  { href: '/data', label: 'Data' },
   { href: '/insights', label: 'Insights' },
   { href: '/policy', label: 'Policy' },
-  { href: '/data', label: 'Data' },
   { href: '/about', label: 'About' },
 ];
 
@@ -31,13 +32,13 @@ function CompassLogo() {
     >
       <circle cx="40" cy="40" r="37" stroke="#B13BFF" strokeWidth="1.5" opacity="0.5" />
       <circle cx="40" cy="40" r="28" stroke="#471396" strokeWidth="0.5" opacity="0.3" />
-      {/* N — gold */}
+      {/* N - gold */}
       <polygon points="40,5 44,36 40,40 36,36" fill="#FFCC00" />
-      {/* S — royal */}
+      {/* S - royal */}
       <polygon points="40,75 44,44 40,40 36,44" fill="#471396" />
-      {/* W — royal */}
+      {/* W - royal */}
       <polygon points="5,40 36,44 40,40 36,36" fill="#471396" />
-      {/* E — electric */}
+      {/* E - electric */}
       <polygon points="75,40 44,36 40,40 44,44" fill="#B13BFF" />
       <circle cx="40" cy="40" r="4" fill="#FFCC00" />
       <circle cx="40" cy="40" r="2" fill="#090040" />
@@ -133,12 +134,12 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
                   The Holmes Project
                 </span>
                 <span className="block text-[9px] tracking-widest" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                  1683 · Philadelphia
+                  Signal Intelligence · Philadelphia
                 </span>
               </div>
             </Link>
 
-            {/* Nav links — desktop */}
+            {/* Nav links - desktop */}
             <div className="hidden lg:flex items-center gap-0.5 ml-1">
               {NAV_LINKS.map(link => {
                 const active = pathname === link.href;
@@ -172,7 +173,7 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
               })}
             </div>
 
-            {/* Search — grows to fill middle */}
+            {/* Search - grows to fill middle */}
             <div className="flex-1 max-w-xs mx-2 hidden md:block" ref={searchRef}>
               <div className="relative">
                 <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--electric)' }} aria-hidden="true" />
@@ -231,6 +232,34 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
 
             {/* Right: status + AI badge + mobile menu */}
             <div className="flex items-center gap-2 flex-shrink-0 ml-auto">
+              <Link
+                href="/glass-box"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,204,0,0.16) 0%, rgba(177,59,255,0.14) 100%)',
+                  border: '1px solid rgba(255,204,0,0.24)',
+                  color: 'white',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '10px',
+                }}
+              >
+                Glass Box
+              </Link>
+
+              <Link
+                href="/signal/map"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(124,217,255,0.16) 0%, rgba(177,59,255,0.14) 100%)',
+                  border: '1px solid rgba(124,217,255,0.24)',
+                  color: 'white',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  fontSize: '10px',
+                }}
+              >
+                Dead Zone Map
+              </Link>
+
               {/* Live status */}
               <motion.div
                 className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full"
@@ -345,7 +374,7 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
         </div>
       </motion.nav>
 
-      {/* Offset spacer so map page content isn't clipped — map page uses its own layout so this only affects secondary pages via pt-14 on their wrappers */}
+      {/* Offset spacer so map page content isn't clipped - map page uses its own layout so this only affects secondary pages via pt-14 on their wrappers */}
     </>
   );
 }

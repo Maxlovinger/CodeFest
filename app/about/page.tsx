@@ -10,16 +10,34 @@ const DATA_SOURCES = [
   { name: 'L&I Code Violations', source: 'OpenDataPhilly', type: 'GeoJSON', update: 'Daily' },
   { name: 'Eviction Filings', source: 'Philadelphia Courts', type: 'GeoJSON', update: 'Monthly' },
   { name: 'Neighborhood Boundaries', source: 'Azavea / PASDA', type: 'GeoJSON', update: 'Annual' },
+  { name: 'Philadelphia Connectivity Tracts', source: 'Philadelphia ArcGIS', type: 'GeoJSON', update: 'Live ingest' },
+  { name: 'Public Wi-Fi Locations', source: 'Philadelphia ArcGIS', type: 'GeoJSON', update: 'Live ingest' },
+  { name: 'Inhibitor Audit Logs', source: 'Challenge sample logs', type: 'CSV / JSONL', update: 'Live ingest' },
 ];
 
 const TECH_STACK = [
   { name: 'Next.js 16', role: 'Full-stack framework' },
+  { name: 'OpenNext + Cloudflare', role: 'Edge deployment and runtime' },
   { name: 'Neon PostgreSQL', role: 'Always-on database' },
-  { name: 'Groq · llama-3.3-70b', role: 'AI intelligence engine' },
-  { name: 'Google Maps API', role: 'Cartographic layer' },
+  { name: 'Pinecone', role: 'Vector retrieval with cosine similarity' },
+  { name: 'OpenAI + Groq fallback', role: 'Streaming AI response layer' },
+  { name: 'Leaflet', role: 'Interactive geospatial layer' },
   { name: 'Framer Motion', role: 'Animation system' },
   { name: 'Recharts', role: 'Data visualization' },
   { name: 'Tailwind CSS v4', role: 'Styling framework' },
+];
+
+const CHALLENGE_TRACKS = [
+  {
+    name: 'Dead Zone Detective',
+    summary: 'We extend Holmes into predictive connectivity intelligence using real Philadelphia tract and public Wi-Fi data so judges can see where access stress is concentrated and where fallback infrastructure exists.',
+    output: 'Signal overview, live Leaflet map, tract scoring, resident-facing Wi-Fi explanations',
+  },
+  {
+    name: 'Glass Box',
+    summary: 'We turn Holmes into an explainability dashboard for Inhibitor logs so a non-technical reviewer can inspect what happened, what triggered it, and what action a team should take next.',
+    output: 'Audit dashboard, event timeline, action breakdowns, policy trigger summaries',
+  },
 ];
 
 function Section({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
@@ -84,10 +102,10 @@ export default function AboutPage() {
               The Holmes Project
             </h1>
             <p className="text-base mb-2" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              Mapping Philadelphia's Housing Crisis — Block by Block
+              Mapping Philadelphia&apos;s risk systems - block by block
             </p>
             <p className="text-xs tracking-widest" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-muted)' }}>
-              Named for Thomas Holme · Surveyor General of Pennsylvania · 1683
+              Housing intelligence · Connectivity foresight · Audit explainability
             </p>
           </motion.div>
 
@@ -101,22 +119,47 @@ export default function AboutPage() {
               }}
             >
               <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
-                In 1683, Thomas Holme laid a grid across a swampy river peninsula and called it Philadelphia —
+                In 1683, Thomas Holme laid a grid across a swampy river peninsula and called it Philadelphia -
                 the city of brotherly love. As William Penn's Surveyor General, he didn't just draw lines on parchment;
                 he mapped a future. His plan allocated public squares, organized neighborhoods, and ensured that the
                 city would grow with intentionality.
               </p>
               <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
-                Three hundred and forty-two years later, Philadelphia's grid still exists — but stretching across it
+                Three hundred and forty-two years later, Philadelphia's grid still exists - but stretching across it
                 are over 21,000 vacant properties, 4,000+ L&I violations, and thousands of eviction filings. The
                 city Thomas Holme imagined is in crisis.
               </p>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
                 The Holmes Project carries his name as both tribute and mission. Just as Holme mapped Philadelphia's
-                future in 1683, we map its present crisis — so the city can plan its next chapter. Every vacant
-                building, every blight score, every eviction filing is a data point in a new survey of the city
-                we inherited.
+                future in 1683, we map the city&apos;s modern stress signals so Philadelphia can plan its next chapter.
+                Every vacant building, every blight score, every connectivity gap, and every intervention log becomes
+                a clue in a new survey of the city we inherited.
               </p>
+            </div>
+          </Section>
+
+          <Section title="Challenge Tracks" delay={0.15}>
+            <div className="grid grid-cols-1 gap-3">
+              {CHALLENGE_TRACKS.map(track => (
+                <div
+                  key={track.name}
+                  className="rounded-xl p-5"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(45,11,94,0.28) 0%, rgba(9,0,64,0.32) 100%)',
+                    border: '1px solid rgba(177,59,255,0.16)',
+                  }}
+                >
+                  <p className="text-xs font-semibold mb-2" style={{ fontFamily: 'Syne, sans-serif', color: 'var(--gold)' }}>
+                    {track.name}
+                  </p>
+                  <p className="text-sm leading-relaxed mb-3" style={{ color: 'var(--text-secondary)', fontFamily: 'DM Sans', lineHeight: 1.75 }}>
+                    {track.summary}
+                  </p>
+                  <p className="text-[11px]" style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {track.output}
+                  </p>
+                </div>
+              ))}
             </div>
           </Section>
 
@@ -194,15 +237,14 @@ export default function AboutPage() {
                 border: '1px solid rgba(255,204,0,0.2)',
               }}
             >
-              <p className="text-base font-bold mb-2" style={{ fontFamily: 'Syne', color: 'var(--gold)' }}>
-                Building AI for Philly's Future
+            <p className="text-base font-bold mb-2" style={{ fontFamily: 'Syne', color: 'var(--gold)' }}>
+                Building AI for Philly&apos;s Future
               </p>
               <p className="text-sm leading-relaxed mb-4"
                 style={{ color: 'var(--text-secondary)', fontFamily: 'Playfair Display', fontStyle: 'italic', lineHeight: 1.75 }}>
-                Submitted to Philly Codefest under the theme "Building AI for Philly's Future."
-                The Holmes Project demonstrates how AI and open data can serve civic intelligence —
-                giving community organizers, city planners, and residents the tools to understand
-                and address the housing crisis.
+                Submitted to Philly Codefest under the theme &quot;Building AI for Philly&apos;s Future.&quot;
+                Holmes now tackles multiple challenge prompts inside one product shell: the original housing-intelligence
+                concept, Dead Zone Detective for predictive connectivity risk, and Glass Box for audit-grade AI explainability.
               </p>
               <div className="flex items-center justify-center gap-2 text-xs flex-wrap"
                 style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>

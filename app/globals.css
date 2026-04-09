@@ -81,7 +81,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Map page specific — applied via class on page root */
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(124, 217, 255, 0.95);
+  outline-offset: 2px;
+}
+
+/* Map page specific - applied via class on page root */
 .map-viewport {
   height: 100dvh;
   overflow: hidden;
@@ -169,3 +188,17 @@ body {
 .animate-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
 .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
 .animate-fade-slide-up { animation: fadeSlideUp 0.6s ease-out forwards; }
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

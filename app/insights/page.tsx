@@ -133,7 +133,7 @@ export default function InsightsPage() {
     <>
       <PageNav />
 
-      {/* Scrollable content — pt-14 clears fixed nav */}
+      {/* Scrollable content - pt-14 clears fixed nav */}
       <div className="min-h-screen pt-20" style={{ background: 'var(--void)' }}>
         {/* Ambient glow */}
         <div
@@ -156,7 +156,7 @@ export default function InsightsPage() {
               Trend Intelligence
             </h1>
             <p className="text-sm mt-1" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-secondary)', fontStyle: 'italic' }}>
-              Philadelphia Housing Crisis — Real-time Data Analysis
+              Philadelphia Housing Crisis - Real-time Data Analysis
             </p>
           </motion.div>
 

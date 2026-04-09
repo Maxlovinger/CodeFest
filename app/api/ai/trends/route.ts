@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
+import { formatAiError, HOLMES_SYSTEM_PROMPT, streamHolmesText } from '@/lib/ai';
 import { query } from '@/lib/db/index';
 import { retrieveContext, formatRagContext } from '@/lib/rag';
 
@@ -40,33 +40,16 @@ Current Philadelphia Housing Data:
 - Code violations: ${vi.total || 0} (structural: ${vi.structural || 0}, electrical: ${vi.electrical || 0}, sanitation: ${vi.sanitation || 0})
 - Eviction filings: ${ev.total || 0} (avg judgment: $${Math.round(parseFloat(ev.avg_amount || '0'))})`;
 
-    const groq = await getGroq();
-    const stream = await groq.chat.completions.create({
-      model: MODEL,
+    return await streamHolmesText({
       messages: [
         { role: 'system', content: HOLMES_SYSTEM_PROMPT + ragContext + dataContext },
         { role: 'user', content: q },
       ],
-      stream: true,
-      max_tokens: 700,
+      maxTokens: 700,
       temperature: 0.7,
     });
-
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(readable, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Groq error';
-    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+    return new Response(formatAiError(error), {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });

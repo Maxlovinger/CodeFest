@@ -32,8 +32,8 @@ function blightColor(score: number) {
   if (score >= 40) return '#FFCC00';
   return '#00E5A0';
 }
-const VACANT_COLOR = '#8B2EFF';    // deep purple — vacant parcels
-const VIOLATION_COLOR = '#D48BFF'; // light purple — code violations
+const VACANT_COLOR = '#8B2EFF';    // deep purple - vacant parcels
+const VIOLATION_COLOR = '#D48BFF'; // light purple - code violations
 
 export default function PhillyMap({ layers, riskFilter, onPropertySelect, onNeighborhoodSelect, flyTo }: PhillyMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -107,7 +107,7 @@ export default function PhillyMap({ layers, riskFilter, onPropertySelect, onNeig
       const data = await res.json();
       const properties: MapProperty[] = data.data || [];
 
-      // When a risk filter is active, all returned markers belong to that tier — use its color consistently
+      // When a risk filter is active, all returned markers belong to that tier - use its color consistently
       const FILTER_COLORS: Record<string, string> = {
         critical: '#FF2D55', high: '#FF6B35', medium: '#FFCC00', low: '#00E5A0',
       };

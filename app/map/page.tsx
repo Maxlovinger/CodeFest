@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Sidebar, { type LayerKey, type LayerConfig } from '@/components/Sidebar';
 import DetailPanel from '@/components/DetailPanel';
@@ -40,6 +41,7 @@ interface SelectedProperty {
 }
 
 export default function Home() {
+  const pathname = usePathname();
   const [appReady, setAppReady] = useState(false);
   const [layers, setLayers] = useState<LayerConfig[]>(INITIAL_LAYERS);
   const [riskFilter, setRiskFilter] = useState('all');
@@ -84,7 +86,32 @@ export default function Home() {
     }).catch(() => {});
   }, []);
 
-  const mapContext = `Active layers: ${layers.filter(l => l.enabled).map(l => l.label).join(', ')}. Risk filter: ${riskFilter}.`;
+  const mapContext = {
+    current_page: pathname,
+    active_layers: layers.filter(l => l.enabled).map(l => ({
+      key: l.key,
+      label: l.label,
+      opacity: l.opacity,
+    })),
+    risk_filter: riskFilter,
+    selected_property: selectedProperty
+      ? {
+          address: selectedProperty.address,
+          parcel_id: selectedProperty.parcel_id,
+          blight_score: selectedProperty.blight_score,
+          category: selectedProperty.category,
+          zip_code: selectedProperty.zip_code,
+          owner: selectedProperty.owner,
+          violation_count: selectedProperty.violations?.length || 0,
+        }
+      : null,
+    selected_neighborhood: selectedNeighborhood,
+    user_view_intent: selectedProperty
+      ? 'The user is currently looking at a specific property detail panel.'
+      : selectedNeighborhood
+        ? 'The user is currently looking at a neighborhood detail panel.'
+        : 'The user is currently browsing the housing map and layer controls.',
+  };
 
   return (
     <main className="map-viewport w-full">

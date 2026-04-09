@@ -12,7 +12,7 @@ interface Message {
 interface ChatDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  mapContext?: string;
+  mapContext?: Record<string, unknown>;
 }
 
 const STARTER_PROMPTS = [
@@ -21,6 +21,7 @@ const STARTER_PROMPTS = [
   'Explain the link between evictions and property vacancy in Philadelphia.',
   'Which zip codes have the most L&I violations?',
   'Compare Philadelphia\'s vacancy crisis to Detroit and Baltimore.',
+  'Explain what I am looking at on the map in plain English.',
 ];
 
 function CompassIcon() {
@@ -158,7 +159,7 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
                     Holmes AI
                   </h3>
                   <p className="text-[10px]" style={{ color: 'var(--text-muted)', fontFamily: 'Playfair Display, serif', fontStyle: 'italic' }}>
-                    Civic Intelligence System · Philadelphia Housing
+                    Civic Intelligence System · Housing · Signal · Audit
                   </p>
                 </div>
                 <div
@@ -167,7 +168,7 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
                 >
                   <Zap size={10} style={{ color: 'var(--electric)' }} />
                   <span className="text-[10px]" style={{ fontFamily: 'DM Sans', color: 'var(--electric)' }}>
-                    Groq · llama-3.3-70b
+                    Context-aware · RAG grounded
                   </span>
                 </div>
               </div>
@@ -192,7 +193,7 @@ export default function ChatDrawer({ isOpen, onClose, mapContext }: ChatDrawerPr
                       Ask Holmes about Philadelphia
                     </p>
                     <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: 'Playfair Display', fontStyle: 'italic' }}>
-                      Vacancy · Blight · Displacement · Policy
+                      Vacancy · Blight · Signal Risk · Policy · Audit
                     </p>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">

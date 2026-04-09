@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { getGroq, HOLMES_SYSTEM_PROMPT, MODEL } from '@/lib/ai';
+import { formatAiError, HOLMES_SYSTEM_PROMPT, streamHolmesText } from '@/lib/ai';
 import { query } from '@/lib/db/index';
 import { retrieveContext, formatRagContext } from '@/lib/rag';
 
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
     const ragContext = formatRagContext(ragChunks);
 
     const displayName = neighborhood.replace(/_/g, ' ');
-    const prompt = `Summarize the housing situation in ${displayName}, Philadelphia in 3–4 sentences.
+    const prompt = `Summarize the housing situation in ${displayName}, Philadelphia in 3-4 sentences.
 
 Live data for this neighborhood:
 - Vacant/blighted properties: ${stats.vacant}
@@ -131,35 +131,16 @@ Live data for this neighborhood:
 
 Cover the overall risk level, what's driving it, and the single most impactful intervention. Be direct and specific to these numbers.`;
 
-    const groq = await getGroq();
-    const stream = await groq.chat.completions.create({
-      model: MODEL,
+    return await streamHolmesText({
       messages: [
         { role: 'system', content: HOLMES_SYSTEM_PROMPT + ragContext },
         { role: 'user', content: prompt },
       ],
-      stream: true,
-      max_tokens: 400,
+      maxTokens: 400,
       temperature: 0.6,
     });
-
-    const encoder = new TextEncoder();
-    const readable = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of stream) {
-          const text = chunk.choices[0]?.delta?.content || '';
-          if (text) controller.enqueue(encoder.encode(text));
-        }
-        controller.close();
-      },
-    });
-
-    return new Response(readable, {
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Transfer-Encoding': 'chunked' },
-    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unknown Groq error';
-    return new Response(`Holmes AI is unavailable right now: ${message}`, {
+    return new Response(formatAiError(error), {
       status: 502,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' },
     });

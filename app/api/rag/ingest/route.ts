@@ -37,7 +37,7 @@ async function buildChunks() {
       const score = Number(p.blight_score) || 0;
       const text = [
         `Vacant property at ${p.address}${p.zip_code ? ` (ZIP ${p.zip_code})` : ''}, owned by ${p.owner}.`,
-        `Blight Score: ${score}/100 — ${blightTier(score)} risk.`,
+        `Blight Score: ${score}/100 - ${blightTier(score)} risk.`,
         p.market_value ? `Assessed market value: $${Math.round(Number(p.market_value)).toLocaleString()}.` : '',
         p.total_area ? `Parcel area: ${Math.round(Number(p.total_area)).toLocaleString()} sq ft.` : '',
         `Category: ${p.category}.`,
@@ -220,7 +220,7 @@ export async function POST(_req: NextRequest) {
       try {
         vectors = await embedTexts(texts);
       } catch (e) {
-        console.warn(`[RAG] embed batch ${i}–${i + BATCH} failed:`, e);
+        console.warn(`[RAG] embed batch ${i}-${i + BATCH} failed:`, e);
         continue;
       }
 

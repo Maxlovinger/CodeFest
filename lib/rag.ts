@@ -1,5 +1,5 @@
 /**
- * RAG helpers — query Pinecone and format retrieved context for the LLM.
+ * RAG helpers - query Pinecone and format retrieved context for the LLM.
  */
 import { embedQuery, getIndex } from './pinecone';
 
@@ -33,7 +33,7 @@ export async function retrieveContext(query: string, topK = 6): Promise<RagChunk
         text: (m.metadata?.text as string) ?? '',
       }));
   } catch {
-    // Index not ready or no data yet — degrade gracefully
+    // Index not ready or no data yet - degrade gracefully
     return [];
   }
 }
@@ -44,7 +44,7 @@ export async function retrieveContext(query: string, topK = 6): Promise<RagChunk
 export function formatRagContext(chunks: RagChunk[]): string {
   if (chunks.length === 0) return '';
   const body = chunks
-    .map((c, i) => `[${i + 1}] (${c.type}) ${c.text}`)
+    .map((c, i) => `[${i + 1}] (${c.type}, relevance ${c.score.toFixed(2)}) ${c.text}`)
     .join('\n');
-  return `\n\n--- Retrieved Philadelphia housing data (RAG) ---\n${body}\n---`;
+  return `\n\n--- Retrieved Philadelphia evidence (RAG) ---\nUse this evidence when it is relevant. If the evidence is weak or unrelated, say so plainly instead of forcing it.\n${body}\n---`;
 }

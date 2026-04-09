@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 
 const NAV_LINKS = [
   { href: '/map', label: 'Map' },
+  { href: '/signal', label: 'Dead Zone' },
+  { href: '/data', label: 'Data' },
   { href: '/insights', label: 'Insights' },
   { href: '/policy', label: 'Policy' },
-  { href: '/data', label: 'Data' },
   { href: '/about', label: 'About' },
 ];
 
@@ -33,6 +34,7 @@ function CompassLogo() {
 
 export default function PageNav() {
   const pathname = usePathname();
+  const onDeadZoneMap = pathname === '/signal/map';
 
   return (
     <motion.nav
@@ -43,7 +45,7 @@ export default function PageNav() {
     >
       <div className="max-w-7xl mx-auto">
         <div
-          className="relative flex items-center gap-3 px-4 h-14 rounded-2xl"
+          className="relative flex items-center gap-3 px-4 h-14 rounded-[20px]"
           style={{
             background: 'rgba(9,0,64,0.92)',
             backdropFilter: 'blur(20px)',
@@ -56,6 +58,18 @@ export default function PageNav() {
             className="absolute inset-0 rounded-2xl pointer-events-none"
             style={{ background: 'linear-gradient(135deg, rgba(177,59,255,0.06) 0%, rgba(255,204,0,0.03) 100%)' }}
           />
+          <div
+            className="absolute inset-x-5 top-[1px] h-[1px] pointer-events-none"
+            style={{ background: 'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 18%, rgba(255,255,255,0.2) 82%, rgba(255,255,255,0) 100%)' }}
+          />
+          <div
+            className="absolute left-20 top-2 h-5 w-28 rounded-full pointer-events-none hidden sm:block"
+            style={{
+              background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0.08) 55%, rgba(255,255,255,0) 100%)',
+              filter: 'blur(6px)',
+              transform: 'rotate(-10deg)',
+            }}
+          />
 
           {/* Brand */}
           <Link href="/" className="flex items-center gap-2.5 flex-shrink-0 group cursor-pointer" aria-label="Home">
@@ -65,7 +79,7 @@ export default function PageNav() {
                 The Holmes Project
               </span>
               <span className="block text-[9px] tracking-widest" style={{ fontFamily: 'Playfair Display, serif', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                1683 · Philadelphia
+                Signal Intelligence · Philadelphia
               </span>
             </div>
           </Link>
@@ -74,13 +88,13 @@ export default function PageNav() {
           <div className="w-px h-5 flex-shrink-0 hidden sm:block" style={{ background: 'rgba(177,59,255,0.25)' }} />
 
           {/* Nav links */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
             {NAV_LINKS.map(link => {
               const active = pathname === link.href;
               return (
                 <Link key={link.href} href={link.href}>
                   <motion.div
-                    className="relative px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors duration-150"
+                    className="relative whitespace-nowrap px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors duration-150"
                     style={{
                       fontFamily: 'Syne, sans-serif',
                       color: active ? 'white' : 'var(--text-secondary)',
@@ -96,6 +110,7 @@ export default function PageNav() {
                         style={{
                           background: 'linear-gradient(135deg, rgba(177,59,255,0.25) 0%, rgba(71,19,150,0.3) 100%)',
                           border: '1px solid rgba(177,59,255,0.35)',
+                          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 24px rgba(80, 20, 140, 0.22)',
                         }}
                         transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                       />
@@ -107,8 +122,37 @@ export default function PageNav() {
             })}
           </div>
 
-          {/* Right — live dot */}
-          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
+          {/* Right - live dot */}
+          <div className="ml-auto hidden items-center gap-2 sm:flex">
+            <Link
+              href="/glass-box"
+              className="inline-flex min-h-[36px] items-center gap-2 rounded-full px-3 py-2 text-[10px]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,204,0,0.16) 0%, rgba(177,59,255,0.14) 100%)',
+                border: '1px solid rgba(255,204,0,0.22)',
+                color: 'white',
+                fontFamily: 'JetBrains Mono, monospace',
+              }}
+            >
+              Glass Box
+            </Link>
+            {!onDeadZoneMap ? (
+              <Link
+                href="/signal/map"
+                className="inline-flex min-h-[36px] items-center gap-2 rounded-full px-3 py-2 text-[10px]"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(124,217,255,0.16) 0%, rgba(177,59,255,0.16) 100%)',
+                  border: '1px solid rgba(124,217,255,0.22)',
+                  color: 'white',
+                  fontFamily: 'JetBrains Mono, monospace',
+                }}
+              >
+                Dead Zone Map
+              </Link>
+            ) : null}
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
             <motion.div
               className="w-1.5 h-1.5 rounded-full"
               style={{ background: '#00E5A0' }}
