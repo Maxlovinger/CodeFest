@@ -360,6 +360,36 @@ export default function GlassBoxPage() {
             </div>
           </motion.section>
 
+          <motion.section
+            className="mt-6 rounded-[28px] p-6"
+            style={{
+              background: 'linear-gradient(145deg, rgba(255,204,0,0.08) 0%, rgba(124,217,255,0.05) 100%)',
+              border: '1px solid rgba(255,204,0,0.16)',
+              backdropFilter: 'blur(16px)',
+            }}
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.06, duration: 0.35 }}
+          >
+            <div className="flex items-start gap-3">
+              <ShieldAlert size={18} style={{ color: 'var(--gold)', marginTop: 2 }} />
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.28em]" style={{ color: 'var(--gold)', fontFamily: 'Syne, sans-serif' }}>
+                  Important note
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                  This Glass Box demo is currently powered by simulated audit data.
+                </h2>
+                <p className="mt-3 max-w-4xl text-sm leading-7" style={{ color: 'rgba(255,255,255,0.78)', fontFamily: 'DM Sans, sans-serif' }}>
+                  We are using challenge-supplied sample logs to demonstrate how this review layer would work in a real production system. In Holmes, a surface like this could help teams catch AI hallucinations, spot when data refresh jobs fail or run with stale inputs, trace why a model response was blocked or corrected, and flag cases that need a human to step in before decisions reach people in the real world.
+                </p>
+                <p className="mt-3 max-w-4xl text-sm leading-7" style={{ color: 'rgba(255,255,255,0.72)', fontFamily: 'DM Sans, sans-serif' }}>
+                  That matters because this platform touches sensitive civic information that could inform housing decisions, connectivity planning, and public-facing explanations. If a system like Holmes is going to be trusted by industry teams, city partners, or operations reviewers, it needs a clear audit trail that explains what happened, why it happened, and when someone should investigate further.
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
           {error ? (
             <div className="mt-6 rounded-[24px] border px-4 py-4 text-sm" style={{ borderColor: 'rgba(255,45,85,0.22)', background: 'rgba(255,45,85,0.08)', color: '#FFD7E0' }}>
               {error}
