@@ -525,7 +525,7 @@ export default function LandingPage() {
                   style={{ background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)' }}
                   whileHover={{ opacity: 1, x: ['−100%', '200%'] }}
                   transition={{ duration: 0.55 }} />
-                Open Original Map
+                Open map
                 <ArrowRight size={15} />
               </motion.button>
             </Link>
