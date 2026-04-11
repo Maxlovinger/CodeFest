@@ -110,25 +110,27 @@ export default function SignalPage() {
     setLoading(true);
     setError('');
     try {
-      const [summaryRes, equityRes] = await Promise.all([
-        fetch('/api/signal/summary', { cache: 'no-store' }),
-        fetch('/api/signal/equity', { cache: 'no-store' }),
-      ]);
-      const summaryData = await summaryRes.json();
-      if (!summaryRes.ok) throw new Error(summaryData?.error || 'Unable to load connectivity summary');
-      setSummary(summaryData.summary ?? null);
-      setTopZones(summaryData.top_zones ?? []);
-
-      if (equityRes.ok) {
-        const equityData = await equityRes.json();
-        setDoubleBurden(equityData.double_burden ?? []);
-        setEquityStats(equityData.stats ?? null);
-      }
+      const res = await fetch('/api/signal/summary', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Unable to load connectivity summary');
+      setSummary(data.summary ?? null);
+      setTopZones(data.top_zones ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load connectivity summary');
     } finally {
       setLoading(false);
     }
+
+    // Equity data loads independently — doesn't block the main dashboard
+    fetch('/api/signal/equity', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data) {
+          setDoubleBurden(data.double_burden ?? []);
+          setEquityStats(data.stats ?? null);
+        }
+      })
+      .catch(() => { /* fail silently */ });
   }
 
   useEffect(() => {
