@@ -75,6 +75,8 @@ export default function PhillyMap({ layers, riskFilter, onPropertySelect, onNeig
       propertyMarkersRef.current.forEach(m => m.remove());
       violMarkersRef.current.forEach(m => m.remove());
       neighborhoodLayersRef.current.forEach(p => p.remove());
+      if (searchMarkerRef.current) { searchMarkerRef.current.remove(); searchMarkerRef.current = null; }
+      if (searchMarkerTimerRef.current) clearTimeout(searchMarkerTimerRef.current);
       if (mapInstance.current) { mapInstance.current.remove(); mapInstance.current = null; }
       propertyMarkersRef.current = [];
       violMarkersRef.current = [];
@@ -82,10 +84,39 @@ export default function PhillyMap({ layers, riskFilter, onPropertySelect, onNeig
     };
   }, []);
 
+  const searchMarkerRef = useRef<import('leaflet').CircleMarker | null>(null);
+  const searchMarkerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    if (flyTo && mapInstance.current) {
-      mapInstance.current.panTo([flyTo.lat, flyTo.lng]);
-    }
+    if (!flyTo || !mapInstance.current) return;
+    import('leaflet').then((L) => {
+      const map = mapInstance.current;
+      if (!map) return;
+
+      // Remove previous search marker
+      if (searchMarkerRef.current) { searchMarkerRef.current.remove(); searchMarkerRef.current = null; }
+      if (searchMarkerTimerRef.current) clearTimeout(searchMarkerTimerRef.current);
+
+      // Fly to location at street level
+      map.setView([flyTo.lat, flyTo.lng], 16, { animate: true, duration: 0.8 });
+
+      // Drop a pulsing search marker
+      const marker = L.circleMarker([flyTo.lat, flyTo.lng], {
+        radius: 10,
+        color: '#7CD9FF',
+        fillColor: '#7CD9FF',
+        fillOpacity: 0.35,
+        weight: 2,
+        opacity: 0.9,
+      }).addTo(map);
+      searchMarkerRef.current = marker;
+
+      // Auto-remove after 5 seconds
+      searchMarkerTimerRef.current = setTimeout(() => {
+        marker.remove();
+        searchMarkerRef.current = null;
+      }, 5000);
+    });
   }, [flyTo]);
 
   const loadVacantBuildings = useCallback(async () => {

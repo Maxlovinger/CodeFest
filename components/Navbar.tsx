@@ -346,6 +346,24 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
                       aria-label="Search address"
                     />
                   </div>
+                  {/* Mobile suggestions */}
+                  {suggestions.length > 0 && (
+                    <div className="mt-1 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(177,59,255,0.2)', background: 'rgba(9,0,64,0.98)' }}>
+                      {suggestions.map((s, i) => (
+                        <button
+                          key={i}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 text-left cursor-pointer transition-colors duration-100 hover:bg-electric/10"
+                          style={{ borderBottom: i < suggestions.length - 1 ? '1px solid rgba(177,59,255,0.08)' : 'none' }}
+                          onMouseDown={() => { handleSelectSuggestion(s); setMenuOpen(false); }}
+                        >
+                          <MapPin size={11} style={{ color: 'var(--electric)', flexShrink: 0 }} aria-hidden="true" />
+                          <span className="text-xs truncate" style={{ fontFamily: 'DM Sans, sans-serif', color: 'var(--text-secondary)' }}>
+                            {s.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 {NAV_LINKS.map((link, i) => {
                   const active = pathname === link.href;

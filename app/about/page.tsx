@@ -20,7 +20,7 @@ const TECH_STACK = [
   { name: 'OpenNext + Cloudflare', role: 'Edge deployment and runtime' },
   { name: 'Neon PostgreSQL', role: 'Always-on database' },
   { name: 'Pinecone', role: 'Vector retrieval with cosine similarity' },
-  { name: 'OpenAI + Groq fallback', role: 'Streaming AI response layer' },
+  { name: 'Cloudflare Workers AI', role: 'Streaming AI response layer' },
   { name: 'Leaflet', role: 'Interactive geospatial layer' },
   { name: 'Framer Motion', role: 'Animation system' },
   { name: 'Recharts', role: 'Data visualization' },
@@ -249,7 +249,8 @@ export default function AboutPage() {
                 style={{ color: 'var(--text-secondary)', fontFamily: 'Playfair Display', fontStyle: 'italic', lineHeight: 1.75 }}>
                 Submitted to Philly Codefest under the theme &quot;Building AI for Philly&apos;s Future.&quot;
                 Holmes now tackles multiple challenge prompts inside one product shell: the original housing-intelligence
-                concept, Dead Zone Detective for predictive connectivity risk, and Glass Box for audit-grade AI explainability.
+                concept, Dead Zone Detective for predictive connectivity risk, Glass Box for audit-grade AI explainability,
+                and the Culture &amp; Community Innovation Award for equity-centered civic data access.
               </p>
               <div className="flex items-center justify-center gap-2 text-xs flex-wrap"
                 style={{ color: 'var(--text-muted)', fontFamily: 'JetBrains Mono' }}>
