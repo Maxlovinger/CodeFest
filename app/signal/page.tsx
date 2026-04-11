@@ -104,24 +104,10 @@ export default function SignalPage() {
   const [doubleBurden, setDoubleBurden] = useState<DoubleBurden[]>([]);
   const [equityStats, setEquityStats] = useState<EquityStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ingesting, setIngesting] = useState(false);
   const [error, setError] = useState('');
 
-  async function loadSummary() {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await fetch('/api/signal/summary', { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Unable to load connectivity summary');
-      setSummary(data.summary ?? null);
-      setTopZones(data.top_zones ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load connectivity summary');
-    } finally {
-      setLoading(false);
-    }
-
-    // Equity data loads independently — doesn't block the main dashboard
+  async function loadEquity() {
     fetch('/api/signal/equity', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -130,11 +116,44 @@ export default function SignalPage() {
           setEquityStats(data.stats ?? null);
         }
       })
-      .catch(() => { /* fail silently */ });
+      .catch(() => {});
+  }
+
+  async function loadSummary(autoIngestIfEmpty = false) {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch('/api/signal/summary', { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || 'Unable to load connectivity summary');
+
+      // Auto-ingest on first visit if tables are empty
+      if (autoIngestIfEmpty && Number(data.summary?.tract_count ?? 0) === 0) {
+        setLoading(false);
+        setIngesting(true);
+        await fetch('/api/signal/ingest', { method: 'POST' });
+        setIngesting(false);
+        // Reload after ingest
+        const res2 = await fetch('/api/signal/summary', { cache: 'no-store' });
+        const data2 = await res2.json();
+        setSummary(data2.summary ?? null);
+        setTopZones(data2.top_zones ?? []);
+        loadEquity();
+        return;
+      }
+
+      setSummary(data.summary ?? null);
+      setTopZones(data.top_zones ?? []);
+      loadEquity();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load connectivity summary');
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
-    loadSummary();
+    loadSummary(true);
   }, []);
 
   const kpis = useMemo(() => {
@@ -211,7 +230,17 @@ export default function SignalPage() {
                   <ArrowRight size={16} />
                 </Link>
 
-                <DataIngestButton endpoint="/api/signal/ingest" label="Refresh connectivity data" onComplete={loadSummary} />
+                {ingesting ? (
+                  <div
+                    className="inline-flex min-h-[46px] items-center gap-2 rounded-full px-5 py-3 text-sm"
+                    style={{ background: 'rgba(124,217,255,0.1)', border: '1px solid rgba(124,217,255,0.22)', color: '#7CD9FF', fontFamily: 'Syne, sans-serif' }}
+                  >
+                    <RefreshCw size={14} className="animate-spin" />
+                    Loading connectivity data…
+                  </div>
+                ) : (
+                  <DataIngestButton endpoint="/api/signal/ingest" label="Refresh connectivity data" onComplete={() => loadSummary(false)} />
+                )}
               </div>
 
               <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
