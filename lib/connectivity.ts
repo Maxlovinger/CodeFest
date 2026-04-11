@@ -364,8 +364,8 @@ export async function ingestConnectivityData(): Promise<{
     ['connectivity_tracts', tractCount, 'success', 'wifi_sites', wifiSiteCount, 'success']
   );
 
-  // Pre-compute equity patterns so the equity API is instant
-  await computeAndStoreEquity();
+  // Equity pre-computation is handled lazily by /api/signal/equity on first read.
+  // Removed from here to keep ingest under Cloudflare's 30s wall-clock limit.
 
   return { tracts: tractCount, wifiSites: wifiSiteCount };
 }
