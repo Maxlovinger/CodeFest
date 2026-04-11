@@ -48,7 +48,6 @@ export default function Home() {
   const [selectedProperty, setSelectedProperty] = useState<SelectedProperty | null>(null);
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number } | null>(null);
   const [lastIngestion, setLastIngestion] = useState<string>('');
 
   const handleLayerToggle = useCallback((key: LayerKey) => {
@@ -72,11 +71,6 @@ export default function Home() {
   const handlePanelClose = useCallback(() => {
     setSelectedProperty(null);
     setSelectedNeighborhood(null);
-  }, []);
-
-  const handleAddressSelect = useCallback((_address: string, lat: number, lng: number) => {
-    setFlyTo({ lat, lng });
-    setTimeout(() => setFlyTo(null), 1000);
   }, []);
 
   const handleLoadingComplete = useCallback(() => {
@@ -123,13 +117,12 @@ export default function Home() {
           riskFilter={riskFilter}
           onPropertySelect={handlePropertySelect}
           onNeighborhoodSelect={handleNeighborhoodSelect}
-          flyTo={flyTo}
         />
       )}
 
       {appReady && (
         <>
-          <Navbar onAddressSelect={handleAddressSelect} lastIngestion={lastIngestion} />
+          <Navbar lastIngestion={lastIngestion} />
           <Sidebar
             layers={layers}
             onLayerToggle={handleLayerToggle}

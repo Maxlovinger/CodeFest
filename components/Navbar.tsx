@@ -1,13 +1,12 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Sparkles, MapPin, Menu, X } from 'lucide-react';
+import { Sparkles, Menu, X } from 'lucide-react';
 
 interface NavbarProps {
-  onAddressSelect?: (address: string, lat: number, lng: number) => void;
   lastIngestion?: string;
 }
 
@@ -53,54 +52,10 @@ function CompassLogo() {
   );
 }
 
-export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) {
+export default function Navbar({ lastIngestion }: NavbarProps) {
   const pathname = usePathname();
-  const [search, setSearch] = useState('');
-  const [suggestions, setSuggestions] = useState<{ label: string; lat: number; lng: number }[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDataFresh = lastIngestion && (Date.now() - new Date(lastIngestion).getTime()) < 24 * 60 * 60 * 1000;
-
-  // Close suggestions on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (val.length <= 2) { setSuggestions([]); setShowSuggestions(false); return; }
-    debounceRef.current = setTimeout(async () => {
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(val + ', Philadelphia, PA')}&format=json&limit=5&addressdetails=1`,
-        { headers: { 'Accept-Language': 'en' } }
-      );
-      const results = await res.json();
-      const mapped = results.map((r: { display_name: string; lat: string; lon: string }) => ({
-        label: r.display_name.replace(/, United States$/, ''),
-        lat: parseFloat(r.lat),
-        lng: parseFloat(r.lon),
-      }));
-      setSuggestions(mapped);
-      setShowSuggestions(mapped.length > 0);
-    } catch { setSuggestions([]); setShowSuggestions(false); }
-    }, 350);
-  };
-
-  const handleSelectSuggestion = (s: { label: string; lat: number; lng: number }) => {
-    setSearch(s.label);
-    setShowSuggestions(false);
-    if (onAddressSelect) onAddressSelect(s.label, s.lat, s.lng);
-  };
 
   return (
     <>
@@ -172,63 +127,6 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
                   </Link>
                 );
               })}
-            </div>
-
-            {/* Search - grows to fill middle */}
-            <div className="flex-1 max-w-xs mx-2 hidden md:block" ref={searchRef}>
-              <div className="relative">
-                <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--electric)' }} aria-hidden="true" />
-                <label htmlFor="nav-search" className="sr-only">Search Philadelphia address</label>
-                <input
-                  id="nav-search"
-                  type="search"
-                  placeholder="Search Philadelphia..."
-                  value={search}
-                  onChange={e => handleSearchChange(e.target.value)}
-                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                  autoComplete="off"
-                  className="w-full h-8 rounded-xl pl-8 pr-3 text-xs outline-none cursor-text"
-                  style={{
-                    background: 'rgba(45,11,94,0.6)',
-                    border: '1px solid rgba(177,59,255,0.18)',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'DM Sans, sans-serif',
-                    caretColor: 'var(--electric)',
-                  }}
-                  aria-label="Search address"
-                />
-                <AnimatePresence>
-                  {showSuggestions && suggestions.length > 0 && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.98 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute top-10 left-0 right-0 rounded-xl overflow-hidden z-50"
-                      style={{
-                        background: 'rgba(9,0,64,0.97)',
-                        border: '1px solid rgba(177,59,255,0.3)',
-                        backdropFilter: 'blur(20px)',
-                        boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
-                      }}
-                    >
-                      {suggestions.map((s, i) => (
-                        <button
-                          key={i}
-                          className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left cursor-pointer transition-colors duration-100 hover:bg-electric/10"
-                          style={{ borderBottom: i < suggestions.length - 1 ? '1px solid rgba(177,59,255,0.08)' : 'none' }}
-                          onMouseDown={() => handleSelectSuggestion(s)}
-                        >
-                          <MapPin size={11} style={{ color: 'var(--electric)', flexShrink: 0 }} aria-hidden="true" />
-                          <span className="text-xs truncate" style={{ fontFamily: 'DM Sans, sans-serif', color: 'var(--text-secondary)' }}>
-                            {s.label}
-                          </span>
-                        </button>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
             </div>
 
             {/* Right: status + AI badge + mobile menu */}
@@ -331,40 +229,6 @@ export default function Navbar({ onAddressSelect, lastIngestion }: NavbarProps) 
                   backdropFilter: 'blur(20px)',
                 }}
               >
-                {/* Mobile search */}
-                <div className="p-3 border-b" style={{ borderColor: 'rgba(177,59,255,0.1)' }}>
-                  <div className="relative">
-                    <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--electric)' }} aria-hidden="true" />
-                    <input
-                      type="search"
-                      placeholder="Search Philadelphia..."
-                      value={search}
-                      onChange={e => handleSearchChange(e.target.value)}
-                      autoComplete="off"
-                      className="w-full h-9 rounded-xl pl-8 pr-3 text-xs outline-none"
-                      style={{ background: 'rgba(45,11,94,0.6)', border: '1px solid rgba(177,59,255,0.18)', color: 'var(--text-primary)', fontFamily: 'DM Sans' }}
-                      aria-label="Search address"
-                    />
-                  </div>
-                  {/* Mobile suggestions */}
-                  {suggestions.length > 0 && (
-                    <div className="mt-1 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(177,59,255,0.2)', background: 'rgba(9,0,64,0.98)' }}>
-                      {suggestions.map((s, i) => (
-                        <button
-                          key={i}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-left cursor-pointer transition-colors duration-100 hover:bg-electric/10"
-                          style={{ borderBottom: i < suggestions.length - 1 ? '1px solid rgba(177,59,255,0.08)' : 'none' }}
-                          onMouseDown={() => { handleSelectSuggestion(s); setMenuOpen(false); }}
-                        >
-                          <MapPin size={11} style={{ color: 'var(--electric)', flexShrink: 0 }} aria-hidden="true" />
-                          <span className="text-xs truncate" style={{ fontFamily: 'DM Sans, sans-serif', color: 'var(--text-secondary)' }}>
-                            {s.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
                 {NAV_LINKS.map((link, i) => {
                   const active = pathname === link.href;
                   return (
