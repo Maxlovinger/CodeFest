@@ -20,8 +20,9 @@ export async function POST(req: NextRequest) {
     const lastUserMsg: string = messages.findLast((m: { role: string; content: string }) => m.role === 'user')?.content ?? '';
     const uiContext = formatUiContext(context);
 
-    // Retrieve relevant context from Pinecone in parallel with building the prompt
-    const ragChunks = await retrieveContext(`${lastUserMsg}\n${uiContext}`, 8);
+    // Retrieve relevant context from Pinecone — embed only the user message to keep the
+    // embedding input small. retrieveContext has a built-in 4s timeout.
+    const ragChunks = await retrieveContext(lastUserMsg, 4);
     const ragContext = formatRagContext(ragChunks);
 
     const systemPrompt =

@@ -12,28 +12,33 @@ export interface RagChunk {
 
 /**
  * Retrieve the top-k most relevant chunks from Pinecone for a given query.
- * Returns an empty array gracefully if the index is not yet populated.
+ * Returns an empty array gracefully if the index is not yet populated,
+ * or if the call exceeds the timeout (default 4s) — so a slow Pinecone
+ * response never blocks an AI reply.
  */
-export async function retrieveContext(query: string, topK = 6): Promise<RagChunk[]> {
+export async function retrieveContext(query: string, topK = 4, timeoutMs = 4000): Promise<RagChunk[]> {
   try {
-    const vector = await embedQuery(query);
-    const index = await getIndex();
-    const results = await index.query({
-      vector,
-      topK,
-      includeMetadata: true,
-    });
+    const fetch = async (): Promise<RagChunk[]> => {
+      const vector = await embedQuery(query);
+      const index = await getIndex();
+      const results = await index.query({ vector, topK, includeMetadata: true });
+      return (results.matches || [])
+        .filter(m => m.score && m.score > 0.35)
+        .map(m => ({
+          id: m.id,
+          score: m.score ?? 0,
+          type: (m.metadata?.type as string) ?? 'unknown',
+          text: (m.metadata?.text as string) ?? '',
+        }));
+    };
 
-    return (results.matches || [])
-      .filter(m => m.score && m.score > 0.35) // relevance threshold
-      .map(m => ({
-        id: m.id,
-        score: m.score ?? 0,
-        type: (m.metadata?.type as string) ?? 'unknown',
-        text: (m.metadata?.text as string) ?? '',
-      }));
+    const timeout = new Promise<RagChunk[]>((_, reject) =>
+      setTimeout(() => reject(new Error('RAG timeout')), timeoutMs)
+    );
+
+    return await Promise.race([fetch(), timeout]);
   } catch {
-    // Index not ready or no data yet - degrade gracefully
+    // Index not ready, timeout, or no data — degrade gracefully
     return [];
   }
 }
