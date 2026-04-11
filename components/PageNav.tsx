@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 const NAV_LINKS = [
   { href: '/map', label: 'Map' },
   { href: '/signal', label: 'Dead Zone' },
+  { href: '/community', label: 'Community' },
   { href: '/data', label: 'Data' },
   { href: '/insights', label: 'Insights' },
   { href: '/policy', label: 'Policy' },

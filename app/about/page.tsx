@@ -38,6 +38,11 @@ const CHALLENGE_TRACKS = [
     summary: 'We turn Holmes into an explainability dashboard for Inhibitor logs so a non-technical reviewer can inspect what happened, what triggered it, and what action a team should take next.',
     output: 'Audit dashboard, event timeline, action breakdowns, policy trigger summaries',
   },
+  {
+    name: 'Culture & Community Innovation Award',
+    summary: 'Holmes strengthens shared culture and fosters meaningful community connection by making civic data accessible to residents, organizers, and nonprofits. We reflect and uplift diverse experiences through equity pattern analysis and create environments where collaboration, belonging, and collective growth can thrive.',
+    output: 'Multi-stakeholder platform, equity analysis, community-centered data access, shared cultural narrative',
+  },
 ];
 
 function Section({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {

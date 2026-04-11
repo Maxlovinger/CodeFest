@@ -747,7 +747,7 @@ export default function LandingPage() {
 
       <section className="relative z-10 px-5 sm:px-8 py-12">
         <motion.div
-          className="mx-auto grid max-w-4xl gap-4 md:grid-cols-2"
+          className="mx-auto grid max-w-5xl gap-4 md:grid-cols-2 lg:grid-cols-3"
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -763,6 +763,11 @@ export default function LandingPage() {
               title: 'Glass Box',
               body: 'An audit dashboard that parses shared inhibitor logs into timelines, action summaries, and policy-trigger views for non-technical review.',
               color: '#FFCC00',
+            },
+            {
+              title: 'Culture & Community Innovation',
+              body: 'A platform that strengthens shared culture and fosters meaningful community connection by making civic data accessible, reflecting diverse experiences, and creating environments where collaboration and collective growth can thrive.',
+              color: '#FF6B35',
             },
           ].map(card => (
             <div
