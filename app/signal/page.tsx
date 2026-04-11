@@ -7,10 +7,12 @@ import {
   Antenna,
   ArrowRight,
   BrainCircuit,
+  Home,
   MapPinned,
   Radar,
   RefreshCw,
   Route,
+  ShieldAlert,
   Sparkles,
   Wifi,
   WifiOff,
@@ -25,6 +27,28 @@ interface SignalSummary {
   critical_tracts: string;
   avg_speed: string;
   max_updated_at: string;
+}
+
+interface DoubleBurden {
+  geoid: string;
+  name: string;
+  risk_score: string;
+  risk_tier: string;
+  pct_no_internet: string;
+  median_income: string;
+  pct_minority: string;
+  wifi_site_count: string;
+  vacant_count: string;
+  avg_blight: string;
+  violation_count: string;
+  double_burden_score: string;
+}
+
+interface EquityStats {
+  total_high_risk: string;
+  with_blight: string;
+  avg_blight_in_high_risk: string;
+  avg_income_high_risk: string;
 }
 
 interface TopZone {
@@ -77,6 +101,8 @@ function formatDate(value?: string) {
 export default function SignalPage() {
   const [summary, setSummary] = useState<SignalSummary | null>(null);
   const [topZones, setTopZones] = useState<TopZone[]>([]);
+  const [doubleBurden, setDoubleBurden] = useState<DoubleBurden[]>([]);
+  const [equityStats, setEquityStats] = useState<EquityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -84,11 +110,20 @@ export default function SignalPage() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/signal/summary', { cache: 'no-store' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || 'Unable to load connectivity summary');
-      setSummary(data.summary ?? null);
-      setTopZones(data.top_zones ?? []);
+      const [summaryRes, equityRes] = await Promise.all([
+        fetch('/api/signal/summary', { cache: 'no-store' }),
+        fetch('/api/signal/equity', { cache: 'no-store' }),
+      ]);
+      const summaryData = await summaryRes.json();
+      if (!summaryRes.ok) throw new Error(summaryData?.error || 'Unable to load connectivity summary');
+      setSummary(summaryData.summary ?? null);
+      setTopZones(summaryData.top_zones ?? []);
+
+      if (equityRes.ok) {
+        const equityData = await equityRes.json();
+        setDoubleBurden(equityData.double_burden ?? []);
+        setEquityStats(equityData.stats ?? null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to load connectivity summary');
     } finally {
@@ -371,6 +406,159 @@ export default function SignalPage() {
               </div>
             </motion.section>
           </div>
+
+          {/* Equity Pattern Section */}
+          <motion.section
+            className="mt-8 rounded-[30px] p-7"
+            style={{
+              background: 'linear-gradient(145deg, rgba(5,10,34,0.96) 0%, rgba(14,6,46,0.94) 100%)',
+              border: '1px solid rgba(177,59,255,0.22)',
+              boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            }}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.22, duration: 0.4 }}
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.32em]" style={{ color: 'var(--electric)', fontFamily: 'Syne, sans-serif' }}>
+                  Equity Pattern
+                </p>
+                <h2 className="mt-1 text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                  Who gets left behind — and why
+                </h2>
+                <p className="mt-2 max-w-3xl text-sm leading-7" style={{ color: 'rgba(255,255,255,0.72)', fontFamily: 'DM Sans, sans-serif' }}>
+                  The neighborhoods hit hardest by vacant properties and housing blight are the same ones losing the connectivity battle.
+                  Abandoned buildings depress investment, shrink the tax base, and push out the infrastructure that keeps communities online.
+                  It is not a coincidence — it is the same disinvestment showing up in two different datasets.
+                </p>
+              </div>
+              <ShieldAlert size={22} style={{ color: 'var(--electric)', flexShrink: 0 }} />
+            </div>
+
+            {/* Correlation stats bar */}
+            {equityStats && (
+              <div className="mb-6 grid gap-3 sm:grid-cols-3">
+                {[
+                  {
+                    label: 'High-risk tracts with housing blight nearby',
+                    value: equityStats.with_blight && equityStats.total_high_risk
+                      ? `${Math.round((Number(equityStats.with_blight) / Number(equityStats.total_high_risk)) * 100)}%`
+                      : '—',
+                    note: `of ${equityStats.total_high_risk} high-risk connectivity tracts`,
+                    color: '#FF2D55',
+                  },
+                  {
+                    label: 'Avg blight score in high-risk zones',
+                    value: equityStats.avg_blight_in_high_risk ? `${equityStats.avg_blight_in_high_risk}/100` : '—',
+                    note: 'housing stress index in connectivity dead zones',
+                    color: '#FF6B35',
+                  },
+                  {
+                    label: 'Median household income',
+                    value: equityStats.avg_income_high_risk
+                      ? `$${Math.round(Number(equityStats.avg_income_high_risk)).toLocaleString()}`
+                      : '—',
+                    note: 'avg in high-risk connectivity tracts',
+                    color: '#FFCC00',
+                  },
+                ].map(stat => (
+                  <div
+                    key={stat.label}
+                    className="rounded-[22px] px-5 py-4"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: `1px solid ${stat.color}28` }}
+                  >
+                    <div className="text-[10px] uppercase tracking-[0.22em] mb-2" style={{ color: stat.color, fontFamily: 'Syne, sans-serif' }}>
+                      {stat.label}
+                    </div>
+                    <div className="text-3xl font-bold text-white mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>
+                      {loading ? '...' : stat.value}
+                    </div>
+                    <div className="text-xs" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans, sans-serif' }}>
+                      {stat.note}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Double burden areas */}
+            {doubleBurden.length > 0 && (
+              <>
+                <p className="mb-4 text-xs uppercase tracking-[0.28em]" style={{ color: 'rgba(255,255,255,0.44)', fontFamily: 'Syne, sans-serif' }}>
+                  Double burden — high connectivity risk + high housing stress
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {doubleBurden.map((area, index) => {
+                    const burden = Math.round(Number(area.double_burden_score || 0));
+                    const blightVal = Math.round(Number(area.avg_blight || 0));
+                    const connRisk = Math.round(Number(area.risk_score || 0));
+                    const burdenColor = burden >= 70 ? '#FF2D55' : burden >= 55 ? '#FF6B35' : '#FFCC00';
+                    return (
+                      <motion.div
+                        key={area.geoid}
+                        className="rounded-[24px] p-4"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${burdenColor}22` }}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.26 + index * 0.04, duration: 0.3 }}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div>
+                            <div className="text-sm font-semibold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
+                              {area.name}
+                            </div>
+                            <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.44)', fontFamily: 'JetBrains Mono, monospace' }}>
+                              TRACT {area.geoid}
+                            </div>
+                          </div>
+                          <div
+                            className="rounded-full px-2.5 py-1 text-[10px] font-bold shrink-0"
+                            style={{ background: `${burdenColor}18`, color: burdenColor, fontFamily: 'JetBrains Mono, monospace' }}
+                          >
+                            {burden}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-xl px-3 py-2" style={{ background: 'rgba(124,217,255,0.06)' }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <WifiOff size={10} style={{ color: '#7CD9FF' }} />
+                              <span className="text-[9px] uppercase tracking-wider" style={{ color: '#7CD9FF', fontFamily: 'Syne, sans-serif' }}>Connectivity</span>
+                            </div>
+                            <div className="text-sm font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{connRisk}/100</div>
+                            <div className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.44)', fontFamily: 'DM Sans, sans-serif' }}>
+                              {Number(area.pct_no_internet || 0).toFixed(1)}% no internet
+                            </div>
+                          </div>
+                          <div className="rounded-xl px-3 py-2" style={{ background: 'rgba(177,59,255,0.06)' }}>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <Home size={10} style={{ color: 'var(--electric)' }} />
+                              <span className="text-[9px] uppercase tracking-wider" style={{ color: 'var(--electric)', fontFamily: 'Syne, sans-serif' }}>Housing</span>
+                            </div>
+                            <div className="text-sm font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{blightVal}/100</div>
+                            <div className="text-[9px] mt-0.5" style={{ color: 'rgba(255,255,255,0.44)', fontFamily: 'DM Sans, sans-serif' }}>
+                              {area.vacant_count} vacant · {area.violation_count} violations
+                            </div>
+                          </div>
+                        </div>
+                        {Number(area.median_income) > 0 && (
+                          <div className="mt-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans, sans-serif' }}>
+                            Median income ${Math.round(Number(area.median_income)).toLocaleString()} · {Number(area.wifi_site_count || 0)} public Wi-Fi sites
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+
+            {!loading && doubleBurden.length === 0 && (
+              <div className="rounded-[22px] px-5 py-5 text-sm text-center" style={{ background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.5)', fontFamily: 'DM Sans, sans-serif' }}>
+                Equity correlation data will appear once connectivity tracts are loaded.
+              </div>
+            )}
+          </motion.section>
 
           <motion.section
             className="mt-8 grid gap-4 md:grid-cols-3"
