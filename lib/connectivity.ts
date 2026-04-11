@@ -162,6 +162,86 @@ async function insertTractBatch(rows: TractRow[]): Promise<void> {
   );
 }
 
+async function computeAndStoreEquity(): Promise<void> {
+  // Double-burden areas: high connectivity risk + nearby housing blight
+  const patterns = await query<{
+    geoid: string; name: string; risk_score: string; risk_tier: string;
+    pct_no_internet: string; median_income: string; pct_minority: string;
+    wifi_site_count: string; vacant_count: string; avg_blight: string;
+    violation_count: string; double_burden_score: string;
+  }>(`
+    SELECT
+      ct.geoid, ct.name, ct.risk_score, ct.risk_tier,
+      ct.pct_no_internet, ct.median_income, ct.pct_minority, ct.wifi_site_count,
+      COUNT(DISTINCT vb.id)                AS vacant_count,
+      COALESCE(AVG(vb.blight_score), 0)    AS avg_blight,
+      COUNT(DISTINCT v.id)                 AS violation_count,
+      ROUND((COALESCE(ct.risk_score,0) + COALESCE(AVG(vb.blight_score),0)) / 2.0) AS double_burden_score
+    FROM connectivity_tracts ct
+    LEFT JOIN vacant_buildings vb
+      ON vb.lat IS NOT NULL AND vb.lng IS NOT NULL
+      AND vb.lat BETWEEN ct.centroid_lat - 0.012 AND ct.centroid_lat + 0.012
+      AND vb.lng BETWEEN ct.centroid_lng - 0.012 AND ct.centroid_lng + 0.012
+    LEFT JOIN violations v
+      ON v.lat IS NOT NULL AND v.lng IS NOT NULL
+      AND v.lat BETWEEN ct.centroid_lat - 0.012 AND ct.centroid_lat + 0.012
+      AND v.lng BETWEEN ct.centroid_lng - 0.012 AND ct.centroid_lng + 0.012
+    WHERE ct.risk_score >= 55
+      AND ct.centroid_lat IS NOT NULL AND ct.centroid_lng IS NOT NULL
+    GROUP BY ct.geoid, ct.name, ct.risk_score, ct.risk_tier,
+             ct.pct_no_internet, ct.median_income, ct.pct_minority, ct.wifi_site_count
+    HAVING COUNT(DISTINCT vb.id) > 0
+    ORDER BY double_burden_score DESC NULLS LAST
+    LIMIT 6
+  `);
+
+  const statsRows = await query<{
+    total_high_risk: string; with_blight: string;
+    avg_blight_in_high_risk: string; avg_income_high_risk: string;
+  }>(`
+    SELECT
+      COUNT(DISTINCT ct.geoid) AS total_high_risk,
+      COUNT(DISTINCT CASE WHEN vb.id IS NOT NULL THEN ct.geoid END) AS with_blight,
+      ROUND(AVG(vb.blight_score))  AS avg_blight_in_high_risk,
+      ROUND(AVG(ct.median_income)) AS avg_income_high_risk
+    FROM connectivity_tracts ct
+    LEFT JOIN vacant_buildings vb
+      ON vb.lat IS NOT NULL AND vb.lng IS NOT NULL
+      AND vb.lat BETWEEN ct.centroid_lat - 0.012 AND ct.centroid_lat + 0.012
+      AND vb.lng BETWEEN ct.centroid_lng - 0.012 AND ct.centroid_lng + 0.012
+    WHERE ct.risk_score >= 55
+      AND ct.centroid_lat IS NOT NULL AND ct.centroid_lng IS NOT NULL
+  `);
+
+  await query('DELETE FROM equity_patterns');
+  await query('DELETE FROM equity_stats');
+
+  if (patterns.length > 0) {
+    await query(
+      `INSERT INTO equity_patterns
+        (geoid, name, risk_score, risk_tier, pct_no_internet, median_income, pct_minority,
+         wifi_site_count, vacant_count, avg_blight, violation_count, double_burden_score)
+       SELECT geoid, name, risk_score, risk_tier, pct_no_internet, median_income, pct_minority,
+              wifi_site_count, vacant_count, avg_blight, violation_count, double_burden_score
+       FROM jsonb_to_recordset($1::jsonb) AS x(
+         geoid TEXT, name TEXT, risk_score NUMERIC, risk_tier TEXT, pct_no_internet NUMERIC,
+         median_income NUMERIC, pct_minority NUMERIC, wifi_site_count INTEGER,
+         vacant_count INTEGER, avg_blight NUMERIC, violation_count INTEGER, double_burden_score NUMERIC
+       )`,
+      [JSON.stringify(patterns)]
+    );
+  }
+
+  if (statsRows[0]) {
+    const s = statsRows[0];
+    await query(
+      `INSERT INTO equity_stats (total_high_risk, with_blight, avg_blight_in_high_risk, avg_income_high_risk)
+       VALUES ($1, $2, $3, $4)`,
+      [s.total_high_risk, s.with_blight, s.avg_blight_in_high_risk, s.avg_income_high_risk]
+    );
+  }
+}
+
 export async function ingestConnectivityData(): Promise<{
   tracts: number;
   wifiSites: number;
@@ -283,6 +363,9 @@ export async function ingestConnectivityData(): Promise<{
      VALUES ($1, $2, $3), ($4, $5, $6)`,
     ['connectivity_tracts', tractCount, 'success', 'wifi_sites', wifiSiteCount, 'success']
   );
+
+  // Pre-compute equity patterns so the equity API is instant
+  await computeAndStoreEquity();
 
   return { tracts: tractCount, wifiSites: wifiSiteCount };
 }

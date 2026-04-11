@@ -157,6 +157,32 @@ CREATE INDEX IF NOT EXISTS idx_wifi_sites_tract ON wifi_sites(census_tract_id);
 CREATE INDEX IF NOT EXISTS idx_wifi_sites_latlng ON wifi_sites(lat, lng);
 CREATE INDEX IF NOT EXISTS idx_audit_events_ts ON audit_events(event_timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_events_action ON audit_events(action);
+
+CREATE TABLE IF NOT EXISTS equity_patterns (
+  id SERIAL PRIMARY KEY,
+  geoid TEXT UNIQUE,
+  name TEXT,
+  risk_score NUMERIC,
+  risk_tier TEXT,
+  pct_no_internet NUMERIC,
+  median_income NUMERIC,
+  pct_minority NUMERIC,
+  wifi_site_count INTEGER,
+  vacant_count INTEGER,
+  avg_blight NUMERIC,
+  violation_count INTEGER,
+  double_burden_score NUMERIC,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS equity_stats (
+  id SERIAL PRIMARY KEY,
+  total_high_risk INTEGER,
+  with_blight INTEGER,
+  avg_blight_in_high_risk NUMERIC,
+  avg_income_high_risk NUMERIC,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 `;
 
 let migrated = false;
