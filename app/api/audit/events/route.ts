@@ -1,10 +1,8 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/db';
-import { migrate } from '@/lib/db/migrate';
 
 export async function GET(req: NextRequest) {
   try {
-    await migrate();
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);
     const action = searchParams.get('action') || '';

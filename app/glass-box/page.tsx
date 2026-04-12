@@ -76,6 +76,13 @@ function formatDate(value?: string) {
   }).format(date);
 }
 
+function sourceLabel(source: string) {
+  if (source === 'inhibitor_csv_set_a') return { label: 'Set A', color: '#7CD9FF' };
+  if (source === 'inhibitor_csv_set_b') return { label: 'Set B', color: '#B13BFF' };
+  if (source === 'inhibitor_jsonl') return { label: 'JSONL', color: '#FFCC00' };
+  return { label: source, color: 'rgba(255,255,255,0.4)' };
+}
+
 function shortReason(event: AuditEvent) {
   return (
     event.reason ||
@@ -107,7 +114,7 @@ export default function GlassBoxPage() {
     try {
       const [summaryRes, eventsRes] = await Promise.all([
         fetch('/api/audit/summary', { cache: 'no-store' }),
-        fetch('/api/audit/events?limit=8', { cache: 'no-store' }),
+        fetch('/api/audit/events?limit=20', { cache: 'no-store' }),
       ]);
 
       const summaryData = await summaryRes.json();
@@ -467,9 +474,19 @@ export default function GlassBoxPage() {
                           <span className="text-sm font-semibold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>
                             {event.action || event.event_type}
                           </span>
-                          <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'JetBrains Mono, monospace' }}>
-                            {loading ? '...' : formatDate(event.event_timestamp)}
-                          </span>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            {event.source && event.source !== 'loading' && (() => {
+                              const src = sourceLabel(event.source);
+                              return (
+                                <span className="text-[9px] px-1.5 py-0.5 rounded-full font-mono uppercase tracking-wider" style={{ background: `${src.color}18`, color: src.color, border: `1px solid ${src.color}30` }}>
+                                  {src.label}
+                                </span>
+                              );
+                            })()}
+                            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'JetBrains Mono, monospace' }}>
+                              {loading ? '...' : formatDate(event.event_timestamp)}
+                            </span>
+                          </div>
                         </div>
                         <p className="mt-2 text-sm leading-6" style={{ color: 'rgba(255,255,255,0.72)', fontFamily: 'DM Sans, sans-serif' }}>
                           {loading ? 'Loading the latest challenge log traces.' : shortReason(event)}
