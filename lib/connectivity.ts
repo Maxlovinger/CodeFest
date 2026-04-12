@@ -1,10 +1,12 @@
 import { query } from './db';
 
+// Use outFields=* so the query never fails due to renamed/versioned field names.
+// resultRecordCount=5000 ensures we get all Philly tracts in one request.
 const TRACTS_URL =
-  'https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/tl_2021_42_tract_fiber_acs/FeatureServer/0/query?where=COUNTYFP%3D%27101%27&outFields=GEOID,NAME,pct_hh_bband_fiber_dsl_cable_23,pct_hh_no_internet_23,pct_hh_no_devices_23,pct_minority_racial_ethnic_23,median_hh_income_23,total_population_23,INTPTLAT,INTPTLON&returnGeometry=true&f=geojson';
+  'https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/tl_2021_42_tract_fiber_acs/FeatureServer/0/query?where=COUNTYFP%3D%27101%27&outFields=*&returnGeometry=true&resultRecordCount=5000&f=geojson';
 
 const WIFI_URL =
-  'https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/free_city_wifi_locations/FeatureServer/0/query?where=1%3D1&outFields=site_name,street_address,zip,council_district,census_tract_id,program_type_to_display,public_wifi_available,current_internet_speed_mbps,pct_hh_no_internet_23,pct_hh_bband_fiber_dsl_cable_23&returnGeometry=true&f=geojson';
+  'https://services.arcgis.com/fLeGjb7u4uXqeF9q/arcgis/rest/services/free_city_wifi_locations/FeatureServer/0/query?where=1%3D1&outFields=*&returnGeometry=true&resultRecordCount=5000&f=geojson';
 
 interface FeatureCollection {
   features?: Array<{
@@ -55,6 +57,15 @@ const INSERT_BATCH_SIZE = 200;
 function parseNumber(value: unknown): number {
   const n = typeof value === 'number' ? value : parseFloat(String(value ?? '0'));
   return Number.isFinite(n) ? n : 0;
+}
+
+// Resolve a field that may carry different year suffixes (_23, _22, _21) or no suffix.
+function resolveField(props: Record<string, unknown>, base: string, suffixes = ['_23', '_22', '_21', '']): unknown {
+  for (const s of suffixes) {
+    const v = props[`${base}${s}`];
+    if (v !== undefined && v !== null) return v;
+  }
+  return undefined;
 }
 
 function parseSpeed(speed: string | undefined): { down: number; up: number } {
@@ -286,8 +297,8 @@ export async function ingestConnectivityData(): Promise<{
       current_internet_speed: speed,
       speed_down_mbps: parsedSpeed.down,
       speed_up_mbps: parsedSpeed.up,
-      pct_hh_no_internet: parseNumber(props.pct_hh_no_internet_23),
-      pct_hh_broadband: parseNumber(props.pct_hh_bband_fiber_dsl_cable_23),
+      pct_hh_no_internet: parseNumber(resolveField(props, 'pct_hh_no_internet')),
+      pct_hh_broadband: parseNumber(resolveField(props, 'pct_hh_bband_fiber_dsl_cable')),
       lat: coords[1] ?? null,
       lng: coords[0] ?? null,
       raw_json: props,
@@ -312,12 +323,12 @@ export async function ingestConnectivityData(): Promise<{
     const geoid = String(props.GEOID ?? '');
     const wifiAgg = wifiByTract.get(geoid) ?? { count: 0, totalSpeed: 0 };
     const avgSpeed = wifiAgg.count > 0 ? wifiAgg.totalSpeed / wifiAgg.count : 0;
-    const broadband = parseNumber(props.pct_hh_bband_fiber_dsl_cable_23);
-    const noInternet = parseNumber(props.pct_hh_no_internet_23);
-    const noDevices = parseNumber(props.pct_hh_no_devices_23);
-    const minority = parseNumber(props.pct_minority_racial_ethnic_23);
-    const income = parseNumber(props.median_hh_income_23);
-    const population = Math.round(parseNumber(props.total_population_23));
+    const broadband = parseNumber(resolveField(props, 'pct_hh_bband_fiber_dsl_cable'));
+    const noInternet = parseNumber(resolveField(props, 'pct_hh_no_internet'));
+    const noDevices = parseNumber(resolveField(props, 'pct_hh_no_devices'));
+    const minority = parseNumber(resolveField(props, 'pct_minority_racial_ethnic'));
+    const income = parseNumber(resolveField(props, 'median_hh_income'));
+    const population = Math.round(parseNumber(resolveField(props, 'total_population')));
     const score = computeRisk({
       pctNoInternet: noInternet,
       pctNoDevices: noDevices,
